@@ -206,7 +206,7 @@ BEGIN
                 condition, status, lifecycle_status
             ) VALUES (
                 comp_id, 
-                'PC-' || LPAD(global_pc_idx::text, 2, '0'), 
+                'PC-' || CASE WHEN global_pc_idx < 100 THEN LPAD(global_pc_idx::text, 2, '0') ELSE global_pc_idx::text END, 
                 lab_id, 
                 CASE WHEN global_pc_idx % 5 = 0 THEN 'Ubuntu'::operating_system_enum ELSE 'Windows 11'::operating_system_enum END,
                 CASE WHEN global_pc_idx % 3 = 0 THEN 'Intel Core i7-12700' ELSE 'AMD Ryzen 5 5600X' END,
@@ -235,7 +235,7 @@ BEGIN
             INSERT INTO ip_addresses (ip_address, subnet_mask, gateway_address, dns_servers, ip_type, allocation_status, computer_id, ip_description) VALUES
             (ip_addr, '255.255.255.0', 
              '192.168.' || subnet_base || '.1',
-             '8.8.8.8, 1.1.1.1', 'Static', 'Allocated', comp_id, 'Workstation PC-' || LPAD(global_pc_idx::text, 2, '0'));
+             '8.8.8.8, 1.1.1.1', 'Static', 'Allocated', comp_id, 'Workstation PC-' || CASE WHEN global_pc_idx < 100 THEN LPAD(global_pc_idx::text, 2, '0') ELSE global_pc_idx::text END);
 
             -- Seed QR Code
             INSERT INTO qr_codes (qr_payload, computer_id) VALUES
