@@ -1158,3 +1158,12 @@ CREATE POLICY modify_snmp_devices ON snmp_devices FOR ALL TO authenticated USING
 CREATE POLICY select_snmp_metrics ON snmp_metrics FOR SELECT TO authenticated USING (true);
 CREATE POLICY modify_snmp_metrics ON snmp_metrics FOR ALL TO authenticated USING (check_user_role('Admin') OR check_user_role('Teknisi'));
 
+-- 32. users, roles, user_roles RLS policies to prevent login/access fallback to Mahasiswa
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE roles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_roles ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY select_users ON users FOR SELECT TO authenticated USING (true);
+CREATE POLICY select_roles ON roles FOR SELECT TO authenticated USING (true);
+CREATE POLICY select_user_roles ON user_roles FOR SELECT TO authenticated USING (true);
+CREATE POLICY update_own_user ON users FOR UPDATE TO authenticated USING (auth.uid() = id);

@@ -90,17 +90,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // 2. Cari role berdasarkan targetUserId
-      const { data: userRoleData, error } = await supabase
+      const { data: userRoleRelation, error: relError } = await supabase
         .from('user_roles')
-        .select(`
-          role:roles(role_name)
-        `)
+        .select('role_id')
         .eq('user_id', targetUserId)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
-      
-      const roleName = ((userRoleData as any)?.role?.role_name || 'Mahasiswa') as UserRole;
+      let roleName: UserRole = 'Mahasiswa';
+      if (!relError && userRoleRelation) {
+        const { data: roleData } = await supabase
+          .from('roles')
+          .select('role_name')
+          .eq('id', userRoleRelation.role_id)
+          .single();
+        if (roleData) {
+          roleName = roleData.role_name as UserRole;
+        }
+      }
 
       setUser({
         id: userId,
