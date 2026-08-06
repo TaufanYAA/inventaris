@@ -61,6 +61,34 @@ INSERT INTO user_roles (user_id, role_id) VALUES
 ('a4444444-4444-4444-4444-444444444444', (SELECT id FROM roles WHERE role_name = 'Operator')),
 ('a5555555-5555-5555-5555-555555555555', (SELECT id FROM roles WHERE role_name = 'Mahasiswa'));
 
+-- Map any existing Supabase Auth users to public.users and assign them the 'Admin' role
+DO $$
+DECLARE
+    auth_user RECORD;
+    admin_role_id UUID;
+BEGIN
+    SELECT id INTO admin_role_id FROM roles WHERE role_name = 'Admin';
+    
+    FOR auth_user IN SELECT id, email FROM auth.users LOOP
+        -- Insert or update user in public.users
+        INSERT INTO public.users (id, username, email, password_hash, full_name)
+        VALUES (
+            auth_user.id, 
+            split_part(auth_user.email, '@', 1), 
+            auth_user.email, 
+            '$2b$12$eImiTXGVGb1t.IbX/7lJLe.49vX.25eX.25eX.25eX.25eX.25eX.', 
+            'Administrator (' || split_part(auth_user.email, '@', 1) || ')'
+        )
+        ON CONFLICT (email) DO UPDATE 
+        SET id = EXCLUDED.id, full_name = EXCLUDED.full_name;
+
+        -- Assign Admin role
+        INSERT INTO public.user_roles (user_id, role_id)
+        VALUES (auth_user.id, admin_role_id)
+        ON CONFLICT (user_id, role_id) DO NOTHING;
+    END LOOP;
+END $$;
+
 -- 3. SEED ROOMS
 INSERT INTO rooms (id, room_name, location_floor, room_description) VALUES
 ('b1111111-1111-1111-1111-111111111111', 'Ruang Server Lab', 3, 'Ruang server utama lab komputer dengan pendingin AC presisi & UPS backup'),
