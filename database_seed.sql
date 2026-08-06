@@ -103,16 +103,16 @@ END $$;
 
 -- 8. SEED NETWORK DOCK (VLANs, SUBNETs, DHCP SCOPEs, DNS)
 INSERT INTO vlans (id, vlan_number, vlan_name, laboratory_id) VALUES
-('g1111111-1111-1111-1111-111111111111', 10, 'VLAN_LabA_Pemrograman', 'c1111111-1111-1111-1111-111111111111'),
-('g2222222-2222-2222-2222-222222222222', 20, 'VLAN_LabB_Jaringan', 'c2222222-2222-2222-2222-222222222222');
+('f1111111-1111-1111-1111-111111111111', 10, 'VLAN_LabA_Pemrograman', 'c1111111-1111-1111-1111-111111111111'),
+('f2222222-2222-2222-2222-222222222222', 20, 'VLAN_LabB_Jaringan', 'c2222222-2222-2222-2222-222222222222');
 
 INSERT INTO subnets (id, subnet_cidr, vlan_id, gateway_ip, dns_servers) VALUES
-('g3333333-3333-3333-3333-333333333333', '192.168.10.0/24', 'g1111111-1111-1111-1111-111111111111', '192.168.10.1', '8.8.8.8, 1.1.1.1'),
-('g4444444-4444-4444-4444-444444444444', '192.168.20.0/24', 'g2222222-2222-2222-2222-222222222222', '192.168.20.1', '8.8.8.8, 1.1.1.1');
+('f3333333-3333-3333-3333-333333333333', '192.168.10.0/24', 'f1111111-1111-1111-1111-111111111111', '192.168.10.1', '8.8.8.8, 1.1.1.1'),
+('f4444444-4444-4444-4444-444444444444', '192.168.20.0/24', 'f2222222-2222-2222-2222-222222222222', '192.168.20.1', '8.8.8.8, 1.1.1.1');
 
 INSERT INTO dhcp_scopes (subnet_id, scope_name, ip_start, ip_end, lease_time_seconds) VALUES
-('g3333333-3333-3333-3333-333333333333', 'DHCP_Scope_LabA', '192.168.10.100', '192.168.10.254', 86400),
-('g4444444-4444-4444-4444-444444444444', 'DHCP_Scope_LabB', '192.168.20.100', '192.168.20.254', 86400);
+('f3333333-3333-3333-3333-333333333333', 'DHCP_Scope_LabA', '192.168.10.100', '192.168.10.254', 86400),
+('f4444444-4444-4444-4444-444444444444', 'DHCP_Scope_LabB', '192.168.20.100', '192.168.20.254', 86400);
 
 INSERT INTO dns_records (domain_name, record_type, record_value) VALUES
 ('router.labnet.ac.id', 'A', '192.168.10.1'),
@@ -215,19 +215,19 @@ WHERE s.software_name IN ('Windows 11 Pro Education', 'VS Code');
 
 -- 13. SEED WARRANTY & BACKUP HISTORY & INCIDENTS & TICKETS
 INSERT INTO suppliers (id, supplier_name, contact_person, phone_number, address) VALUES
-('s1111111-1111-1111-1111-111111111111', 'CV. Jaya Raya Mandiri', 'Roni Wijaya', '021-5524381', 'Jl. Mangga Dua Raya No. 42, Jakarta Pusat');
+('91111111-1111-1111-1111-111111111111', 'CV. Jaya Raya Mandiri', 'Roni Wijaya', '021-5524381', 'Jl. Mangga Dua Raya No. 42, Jakarta Pusat');
 
 INSERT INTO procurement (id, supplier_id, procurement_title, invoice_number, purchase_date, total_cost, procurement_notes) VALUES
-('pr111111-1111-1111-1111-111111111111', 's1111111-1111-1111-1111-111111111111', 'Pengadaan PC Workstation Baru 2026', 'INV-2026-9923', '2026-01-10', 450000000.00, 'Pengadaan 45 Unit PC Workstation Baru beserta monitor');
+('77111111-1111-1111-1111-111111111111', '91111111-1111-1111-1111-111111111111', 'Pengadaan PC Workstation Baru 2026', 'INV-2026-9923', '2026-01-10', 450000000.00, 'Pengadaan 45 Unit PC Workstation Baru beserta monitor');
 
 -- Seed Warranties for computers
 INSERT INTO warranties (supplier_id, warranty_number, start_date, end_date, pic_name, computer_id)
-SELECT 's1111111-1111-1111-1111-111111111111', 'WAR-BEL-PC-' || c.computer_name, '2026-01-10', '2029-01-10', 'Roni Wijaya (Warranty PIC)', c.id
+SELECT '91111111-1111-1111-1111-111111111111', 'WAR-BEL-PC-' || c.computer_name, '2026-01-10', '2029-01-10', 'Roni Wijaya (Warranty PIC)', c.id
 FROM computers c;
 
 -- Seed Network Backups
 INSERT INTO network_backup_history (network_device_id, backup_date, backup_file_url, restore_status, operator_id, checksum) VALUES
-('e1111111-1111-1111-1111-111111111111', now() - INTERVAL '2 days', '/backups/router_ccr_20260804.backup', 'Success', 'a3333333-3333-3333-3333-333333333333', 'sha256:d8c361661159ea8996e3a96677f5ad67c2cdcf22bd19962e245a4a90947098e9');
+('e1111111-1111-1111-1111-111111111111', now() - INTERVAL '2 days', '/backups/router_ccr_20260804.backup', 'Success', 'a3333333-3333-3333-3333-333333333333', 'd8c361661159ea8996e3a96677f5ad67c2cdcf22bd19962e245a4a90947098e9');
 
 -- Seed Tickets, Incidents, and Maintenance Flow
 INSERT INTO tickets (id, ticket_number, reporter_name, reporter_phone, laboratory_id, computer_id, complaint_details, ticket_status) VALUES
@@ -255,19 +255,19 @@ INSERT INTO maintenance_schedules (schedule_title, schedule_type, target_laborat
 
 -- 14. SEED CONSUMABLE INVENTORY
 INSERT INTO consumable_items (id, item_name, item_brand, stock_quantity, min_stock_alert, unit_type, item_description) VALUES
-('h1111111-1111-1111-1111-111111111111', 'Konektor RJ45 Cat6 Belden', 'Belden', 0, 20, 'pcs', 'Konektor RJ45 kualitas tinggi untuk kabel UTP Cat6'),
-('h2222222-2222-2222-2222-222222222222', 'Pasta Thermal Noctua NT-H1', 'Noctua', 0, 2, 'tube', 'Pasta thermal high-performance untuk processor workstation'),
-('h3333333-3333-3333-3333-333333333333', 'Kabel LAN UTP Cat6 Belden (1 Roll)', 'Belden', 0, 1, 'box', 'Kabel LAN Belden UTP Cat 6 panjang 305 meter per box');
+('81111111-1111-1111-1111-111111111111', 'Konektor RJ45 Cat6 Belden', 'Belden', 0, 20, 'pcs', 'Konektor RJ45 kualitas tinggi untuk kabel UTP Cat6'),
+('82222222-2222-2222-2222-222222222222', 'Pasta Thermal Noctua NT-H1', 'Noctua', 0, 2, 'tube', 'Pasta thermal high-performance untuk processor workstation'),
+('83333333-3333-3333-3333-333333333333', 'Kabel LAN UTP Cat6 Belden (1 Roll)', 'Belden', 0, 1, 'box', 'Kabel LAN Belden UTP Cat 6 panjang 305 meter per box');
 
 -- Trigger will update stock_quantity on transaction insert
 INSERT INTO consumable_transactions (consumable_item_id, transaction_type, quantity, transaction_notes, created_by) VALUES
-('h1111111-1111-1111-1111-111111111111', 'Stock In', 200, 'Pengadaan awal semester', 'a1111111-1111-1111-1111-111111111111'),
-('h2222222-2222-2222-2222-222222222222', 'Stock In', 5, 'Pembelian Noctua thermal grease', 'a1111111-1111-1111-1111-111111111111'),
-('h3333333-3333-3333-3333-333333333333', 'Stock In', 3, 'Pengadaan UTP Kabel Belden 3 Roll', 'a1111111-1111-1111-1111-111111111111');
+('81111111-1111-1111-1111-111111111111', 'Stock In', 200, 'Pengadaan awal semester', 'a1111111-1111-1111-1111-111111111111'),
+('82222222-2222-2222-2222-222222222222', 'Stock In', 5, 'Pembelian Noctua thermal grease', 'a1111111-1111-1111-1111-111111111111'),
+('83333333-3333-3333-3333-333333333333', 'Stock In', 3, 'Pengadaan UTP Kabel Belden 3 Roll', 'a1111111-1111-1111-1111-111111111111');
 
 INSERT INTO consumable_transactions (consumable_item_id, transaction_type, quantity, computer_id, transaction_notes, created_by) VALUES
-('h1111111-1111-1111-1111-111111111111', 'Stock Out', 10, (SELECT id FROM computers WHERE computer_name = 'PC-01'), 'Digunakan untuk crimping kabel LAN baru workstation PC-01', 'a3333333-3333-3333-3333-333333333333'),
-('h2222222-2222-2222-2222-222222222222', 'Stock Out', 1, (SELECT id FROM computers WHERE computer_name = 'PC-12'), 'Repaste thermal processor PC-12 karena overheat', 'a3333333-3333-3333-3333-333333333333');
+('81111111-1111-1111-1111-111111111111', 'Stock Out', 10, (SELECT id FROM computers WHERE computer_name = 'PC-01'), 'Digunakan untuk crimping kabel LAN baru workstation PC-01', 'a3333333-3333-3333-3333-333333333333'),
+('82222222-2222-2222-2222-222222222222', 'Stock Out', 1, (SELECT id FROM computers WHERE computer_name = 'PC-12'), 'Repaste thermal processor PC-12 karena overheat', 'a3333333-3333-3333-3333-333333333333');
 
 -- 15. SEED SYSTEM SETTINGS & SAMPLE AUDIT LOGS
 INSERT INTO system_settings (setting_key, setting_value, setting_description) VALUES
