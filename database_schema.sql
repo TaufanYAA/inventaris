@@ -49,6 +49,8 @@ DROP TABLE IF EXISTS network_configs CASCADE;
 DROP TABLE IF EXISTS ip_addresses CASCADE;
 DROP TABLE IF EXISTS switch_ports CASCADE;
 DROP TABLE IF EXISTS rack_slots CASCADE;
+DROP TABLE IF EXISTS network_devices CASCADE;
+DROP TABLE IF EXISTS internet_providers CASCADE;
 DROP TABLE IF EXISTS patch_panels CASCADE;
 DROP TABLE IF EXISTS racks CASCADE;
 DROP TABLE IF EXISTS peripherals CASCADE;
@@ -1046,3 +1048,111 @@ CREATE POLICY modify_consumable_items ON consumable_items FOR ALL TO authenticat
 -- 10. activity_logs
 CREATE POLICY select_activity_logs ON activity_logs FOR SELECT TO authenticated USING (true);
 CREATE POLICY insert_activity_logs ON activity_logs FOR INSERT TO authenticated WITH CHECK (true);
+
+-- Enable RLS for remaining tables
+ALTER TABLE laboratories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE rooms ENABLE ROW LEVEL SECURITY;
+ALTER TABLE suppliers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE procurement ENABLE ROW LEVEL SECURITY;
+ALTER TABLE inventory_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE borrowing ENABLE ROW LEVEL SECURITY;
+ALTER TABLE borrowing_details ENABLE ROW LEVEL SECURITY;
+ALTER TABLE consumable_transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE network_devices ENABLE ROW LEVEL SECURITY;
+ALTER TABLE network_links ENABLE ROW LEVEL SECURITY;
+ALTER TABLE network_nodes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vlans ENABLE ROW LEVEL SECURITY;
+ALTER TABLE subnets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE dhcp_scopes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE dns_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE software ENABLE ROW LEVEL SECURITY;
+ALTER TABLE software_installations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE network_backup_history ENABLE ROW LEVEL SECURITY;
+ALTER TABLE warranties ENABLE ROW LEVEL SECURITY;
+ALTER TABLE snmp_devices ENABLE ROW LEVEL SECURITY;
+ALTER TABLE snmp_metrics ENABLE ROW LEVEL SECURITY;
+
+-- 11. laboratories
+CREATE POLICY select_laboratories ON laboratories FOR SELECT TO authenticated USING (true);
+CREATE POLICY modify_laboratories ON laboratories FOR ALL TO authenticated USING (check_user_role('Admin'));
+
+-- 12. rooms
+CREATE POLICY select_rooms ON rooms FOR SELECT TO authenticated USING (true);
+CREATE POLICY modify_rooms ON rooms FOR ALL TO authenticated USING (check_user_role('Admin'));
+
+-- 13. suppliers
+CREATE POLICY select_suppliers ON suppliers FOR SELECT TO authenticated USING (true);
+CREATE POLICY modify_suppliers ON suppliers FOR ALL TO authenticated USING (check_user_role('Admin') OR check_user_role('Laboran'));
+
+-- 14. procurement
+CREATE POLICY select_procurement ON procurement FOR SELECT TO authenticated USING (true);
+CREATE POLICY modify_procurement ON procurement FOR ALL TO authenticated USING (check_user_role('Admin') OR check_user_role('Laboran'));
+
+-- 15. inventory_items
+CREATE POLICY select_inventory_items ON inventory_items FOR SELECT TO authenticated USING (true);
+CREATE POLICY modify_inventory_items ON inventory_items FOR ALL TO authenticated USING (check_user_role('Admin') OR check_user_role('Laboran'));
+
+-- 16. borrowing
+CREATE POLICY select_borrowing ON borrowing FOR SELECT TO authenticated USING (true);
+CREATE POLICY modify_borrowing ON borrowing FOR ALL TO authenticated USING (check_user_role('Admin') OR check_user_role('Laboran'));
+
+-- 17. borrowing_details
+CREATE POLICY select_borrowing_details ON borrowing_details FOR SELECT TO authenticated USING (true);
+CREATE POLICY modify_borrowing_details ON borrowing_details FOR ALL TO authenticated USING (check_user_role('Admin') OR check_user_role('Laboran'));
+
+-- 18. consumable_transactions
+CREATE POLICY select_consumable_transactions ON consumable_transactions FOR SELECT TO authenticated USING (true);
+CREATE POLICY modify_consumable_transactions ON consumable_transactions FOR ALL TO authenticated USING (check_user_role('Admin') OR check_user_role('Laboran'));
+
+-- 19. network_devices
+CREATE POLICY select_network_devices ON network_devices FOR SELECT TO authenticated USING (true);
+CREATE POLICY modify_network_devices ON network_devices FOR ALL TO authenticated USING (check_user_role('Admin') OR check_user_role('Laboran') OR check_user_role('Teknisi'));
+
+-- 20. network_links
+CREATE POLICY select_network_links ON network_links FOR SELECT TO authenticated USING (true);
+CREATE POLICY modify_network_links ON network_links FOR ALL TO authenticated USING (check_user_role('Admin') OR check_user_role('Laboran') OR check_user_role('Teknisi'));
+
+-- 21. network_nodes
+CREATE POLICY select_network_nodes ON network_nodes FOR SELECT TO authenticated USING (true);
+CREATE POLICY modify_network_nodes ON network_nodes FOR ALL TO authenticated USING (check_user_role('Admin') OR check_user_role('Laboran') OR check_user_role('Teknisi'));
+
+-- 22. vlans
+CREATE POLICY select_vlans ON vlans FOR SELECT TO authenticated USING (true);
+CREATE POLICY modify_vlans ON vlans FOR ALL TO authenticated USING (check_user_role('Admin') OR check_user_role('Laboran') OR check_user_role('Teknisi'));
+
+-- 23. subnets
+CREATE POLICY select_subnets ON subnets FOR SELECT TO authenticated USING (true);
+CREATE POLICY modify_subnets ON subnets FOR ALL TO authenticated USING (check_user_role('Admin') OR check_user_role('Laboran') OR check_user_role('Teknisi'));
+
+-- 24. dhcp_scopes
+CREATE POLICY select_dhcp_scopes ON dhcp_scopes FOR SELECT TO authenticated USING (true);
+CREATE POLICY modify_dhcp_scopes ON dhcp_scopes FOR ALL TO authenticated USING (check_user_role('Admin') OR check_user_role('Laboran') OR check_user_role('Teknisi'));
+
+-- 25. dns_records
+CREATE POLICY select_dns_records ON dns_records FOR SELECT TO authenticated USING (true);
+CREATE POLICY modify_dns_records ON dns_records FOR ALL TO authenticated USING (check_user_role('Admin') OR check_user_role('Laboran') OR check_user_role('Teknisi'));
+
+-- 26. software
+CREATE POLICY select_software ON software FOR SELECT TO authenticated USING (true);
+CREATE POLICY modify_software ON software FOR ALL TO authenticated USING (check_user_role('Admin') OR check_user_role('Laboran') OR check_user_role('Teknisi'));
+
+-- 27. software_installations
+CREATE POLICY select_software_installations ON software_installations FOR SELECT TO authenticated USING (true);
+CREATE POLICY modify_software_installations ON software_installations FOR ALL TO authenticated USING (check_user_role('Admin') OR check_user_role('Laboran') OR check_user_role('Teknisi'));
+
+-- 28. network_backup_history
+CREATE POLICY select_network_backup_history ON network_backup_history FOR SELECT TO authenticated USING (true);
+CREATE POLICY modify_network_backup_history ON network_backup_history FOR ALL TO authenticated USING (check_user_role('Admin') OR check_user_role('Teknisi'));
+
+-- 29. warranties
+CREATE POLICY select_warranties ON warranties FOR SELECT TO authenticated USING (true);
+CREATE POLICY modify_warranties ON warranties FOR ALL TO authenticated USING (check_user_role('Admin') OR check_user_role('Teknisi'));
+
+-- 30. snmp_devices
+CREATE POLICY select_snmp_devices ON snmp_devices FOR SELECT TO authenticated USING (true);
+CREATE POLICY modify_snmp_devices ON snmp_devices FOR ALL TO authenticated USING (check_user_role('Admin') OR check_user_role('Teknisi'));
+
+-- 31. snmp_metrics
+CREATE POLICY select_snmp_metrics ON snmp_metrics FOR SELECT TO authenticated USING (true);
+CREATE POLICY modify_snmp_metrics ON snmp_metrics FOR ALL TO authenticated USING (check_user_role('Admin') OR check_user_role('Teknisi'));
+
