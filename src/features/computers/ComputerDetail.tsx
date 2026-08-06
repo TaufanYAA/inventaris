@@ -179,7 +179,7 @@ export const ComputerDetail: React.FC = () => {
   const handleDeletePC = () => {
     if (!id || !user || !computer) return;
     if (window.confirm(`Apakah Anda yakin ingin menghapus komputer ${computer.computer_name} dari inventaris?`)) {
-      deleteComputer({ id, deletedBy: user.fullName || 'Admin' }, {
+      deleteComputer({ id, deletedBy: user.id }, {
         onSuccess: () => {
           toast('success', `Komputer ${computer.computer_name} berhasil dihapus.`);
           navigate('/computers');
