@@ -100,6 +100,33 @@ export class NetworkService extends BaseService<'network_devices'> {
       this.handleError(err);
     }
   }
+
+  // Get VLANs
+  async getVlans(filters: Record<string, any> = {}) {
+    try {
+      return await this.networkRepository.getVlans(filters);
+    } catch (err) {
+      this.handleError(err);
+    }
+  }
+
+  // Get DHCP Scopes
+  async getDhcpScopes(filters: Record<string, any> = {}) {
+    try {
+      return await this.networkRepository.getDhcpScopes(filters);
+    } catch (err) {
+      this.handleError(err);
+    }
+  }
+
+  // Get DNS Records
+  async getDnsRecords(filters: Record<string, any> = {}) {
+    try {
+      return await this.networkRepository.getDnsRecords(filters);
+    } catch (err) {
+      this.handleError(err);
+    }
+  }
 }
 
 // Export single instance

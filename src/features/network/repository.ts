@@ -89,4 +89,51 @@ export class NetworkRepository extends BaseRepository<'network_devices'> {
 
     return { nodes, links };
   }
+
+  // Fetch VLANs
+  async getVlans(filters: Record<string, any> = {}) {
+    let query = supabase
+      .from('vlans')
+      .select('*', { count: 'exact' })
+      .order('vlan_number', { ascending: true });
+
+    if (filters.laboratory_id) {
+      query = query.eq('laboratory_id', filters.laboratory_id);
+    }
+
+    const { data, count, error } = await query;
+    if (error) throw error;
+    return { data, count: count || 0 };
+  }
+
+  // Fetch DHCP Scopes
+  async getDhcpScopes(filters: Record<string, any> = {}) {
+    const { data, count, error } = await supabase
+      .from('dhcp_scopes')
+      .select(`
+        *,
+        vlan:vlans(id, vlan_number, vlan_name)
+      `, { count: 'exact' })
+      .match(filters)
+      .order('scope_name', { ascending: true });
+
+    if (error) throw error;
+    return { data, count: count || 0 };
+  }
+
+  // Fetch DNS Records
+  async getDnsRecords(filters: Record<string, any> = {}) {
+    let query = supabase
+      .from('dns_records')
+      .select('*', { count: 'exact' })
+      .order('domain_name', { ascending: true });
+
+    if (filters.record_type) {
+      query = query.eq('record_type', filters.record_type);
+    }
+
+    const { data, count, error } = await query;
+    if (error) throw error;
+    return { data, count: count || 0 };
+  }
 }

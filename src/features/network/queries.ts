@@ -118,3 +118,27 @@ export function useSaveConfigBackup() {
     },
   });
 }
+
+// Hook: Get VLANs
+export function useVlans(filters: Record<string, any> = {}) {
+  return useQuery({
+    queryKey: [...networkKeys.all, 'vlans', { filters }] as const,
+    queryFn: () => networkService.getVlans(filters),
+  });
+}
+
+// Hook: Get DHCP Scopes
+export function useDhcpScopes(filters: Record<string, any> = {}) {
+  return useQuery({
+    queryKey: [...networkKeys.all, 'dhcp', { filters }] as const,
+    queryFn: () => networkService.getDhcpScopes(filters),
+  });
+}
+
+// Hook: Get DNS Records
+export function useDnsRecords(filters: Record<string, any> = {}) {
+  return useQuery({
+    queryKey: [...networkKeys.all, 'dns', { filters }] as const,
+    queryFn: () => networkService.getDnsRecords(filters),
+  });
+}
