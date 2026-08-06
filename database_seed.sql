@@ -29,12 +29,20 @@ INSERT INTO user_roles (user_id, role_id) VALUES
 INSERT INTO rooms (id, room_name, location_floor, room_description) VALUES
 ('b1111111-1111-1111-1111-111111111111', 'Ruang Server Lab', 3, 'Ruang server utama lab komputer dengan pendingin AC presisi & UPS backup'),
 ('b2222222-2222-2222-2222-222222222222', 'Gedung C Ruang 301 (Lab A)', 3, 'Laboratorium Komputer Pemrograman & Rekayasa Software'),
-('b3333333-3333-3333-3333-333333333333', 'Gedung C Ruang 302 (Lab B)', 3, 'Laboratorium Komputer Jaringan & Sistem Komunikasi data');
+('b3333333-3333-3333-3333-333333333333', 'Gedung C Ruang 302 (Lab B)', 3, 'Laboratorium Komputer Jaringan & Sistem Komunikasi data'),
+('b4444444-4444-4444-4444-444444444444', 'Gedung C Ruang 303 (Lab C)', 3, 'Laboratorium Komputer Sistem Informasi & Rekayasa Bisnis'),
+('b5555555-5555-5555-5555-555555555555', 'Gedung C Ruang 304 (Lab D)', 3, 'Laboratorium Komputer Multimedia & Desain Grafis'),
+('b6666666-6666-6666-6666-666666666666', 'Gedung C Ruang 305 (Lab E)', 3, 'Laboratorium Komputer Cloud Computing & IoT'),
+('b7777777-7777-7777-7777-777777777777', 'Gedung C Ruang 306 (Lab F)', 3, 'Laboratorium Komputer Kecerdasan Buatan & Data Science');
 
 -- 4. SEED LABORATORIES
 INSERT INTO laboratories (id, lab_name, room_id, lab_description) VALUES
 ('c1111111-1111-1111-1111-111111111111', 'Lab A (Pemrograman)', 'b2222222-2222-2222-2222-222222222222', 'Fokus pada praktikum web, mobile app development, basis data, dan struktur data'),
-('c2222222-2222-2222-2222-222222222222', 'Lab B (Jaringan)', 'b3333333-3333-3333-3333-333333333333', 'Fokus pada praktikum jaringan komputer, administrasi server, keamanan, & sistem tertanam');
+('c2222222-2222-2222-2222-222222222222', 'Lab B (Jaringan)', 'b3333333-3333-3333-3333-333333333333', 'Fokus pada praktikum jaringan komputer, administrasi server, keamanan, & sistem tertanam'),
+('c3333333-3333-3333-3333-333333333333', 'Lab C (Sistem Informasi)', 'b4444444-4444-4444-4444-444444444444', 'Fokus pada rekayasa proses bisnis, ERP, & analisis data enterprise'),
+('c4444444-4444-4444-4444-444444444444', 'Lab D (Multimedia)', 'b5555555-5555-5555-5555-555555555555', 'Fokus pada pemodelan 3D, animasi, game development, & video editing'),
+('c5555555-5555-5555-5555-555555555555', 'Lab E (Komputasi Awan)', 'b6666666-6666-6666-6666-666666666666', 'Fokus pada virtualisasi, cloud architecture, & implementasi smart devices'),
+('c6666666-6666-6666-6666-666666666666', 'Lab F (Kecerdasan Buatan)', 'b7777777-7777-7777-7777-777777777777', 'Fokus pada machine learning, neural networks, computer vision, & big data analytics');
 
 -- 5. SEED ISP & NETWORK CONFIGS
 INSERT INTO internet_providers (id, provider_name, bandwidth_speed_mbps, contact_number, provider_status) VALUES
@@ -104,83 +112,104 @@ END $$;
 -- 8. SEED NETWORK DOCK (VLANs, SUBNETs, DHCP SCOPEs, DNS)
 INSERT INTO vlans (id, vlan_number, vlan_name, laboratory_id) VALUES
 ('f1111111-1111-1111-1111-111111111111', 10, 'VLAN_LabA_Pemrograman', 'c1111111-1111-1111-1111-111111111111'),
-('f2222222-2222-2222-2222-222222222222', 20, 'VLAN_LabB_Jaringan', 'c2222222-2222-2222-2222-222222222222');
+('f2222222-2222-2222-2222-222222222222', 20, 'VLAN_LabB_Jaringan', 'c2222222-2222-2222-2222-222222222222'),
+('f3333333-3333-3333-3333-333333333333', 30, 'VLAN_LabC_SistInfo', 'c3333333-3333-3333-3333-333333333333'),
+('f4444444-4444-4444-4444-444444444444', 40, 'VLAN_LabD_Multimedia', 'c4444444-4444-4444-4444-444444444444'),
+('f5555555-5555-5555-5555-555555555555', 50, 'VLAN_LabE_Awan', 'c5555555-5555-5555-5555-555555555555'),
+('f6666666-6666-6666-6666-666666666666', 60, 'VLAN_LabF_Kecerdasan', 'c6666666-6666-6666-6666-666666666666');
 
 INSERT INTO subnets (id, subnet_cidr, vlan_id, gateway_ip, dns_servers) VALUES
 ('f3333333-3333-3333-3333-333333333333', '192.168.10.0/24', 'f1111111-1111-1111-1111-111111111111', '192.168.10.1', '8.8.8.8, 1.1.1.1'),
-('f4444444-4444-4444-4444-444444444444', '192.168.20.0/24', 'f2222222-2222-2222-2222-222222222222', '192.168.20.1', '8.8.8.8, 1.1.1.1');
+('f4444444-4444-4444-4444-444444444444', '192.168.20.0/24', 'f2222222-2222-2222-2222-222222222222', '192.168.20.1', '8.8.8.8, 1.1.1.1'),
+('f5555555-5555-5555-5555-555555555555', '192.168.30.0/24', 'f3333333-3333-3333-3333-333333333333', '192.168.30.1', '8.8.8.8, 1.1.1.1'),
+('f6666666-6666-6666-6666-666666666666', '192.168.40.0/24', 'f4444444-4444-4444-4444-444444444444', '192.168.40.1', '8.8.8.8, 1.1.1.1'),
+('f7777777-7777-7777-7777-777777777777', '192.168.50.0/24', 'f5555555-5555-5555-5555-555555555555', '192.168.50.1', '8.8.8.8, 1.1.1.1'),
+('f8888888-8888-8888-8888-888888888888', '192.168.60.0/24', 'f6666666-6666-6666-6666-666666666666', '192.168.60.1', '8.8.8.8, 1.1.1.1');
 
 INSERT INTO dhcp_scopes (subnet_id, scope_name, ip_start, ip_end, lease_time_seconds) VALUES
 ('f3333333-3333-3333-3333-333333333333', 'DHCP_Scope_LabA', '192.168.10.100', '192.168.10.254', 86400),
-('f4444444-4444-4444-4444-444444444444', 'DHCP_Scope_LabB', '192.168.20.100', '192.168.20.254', 86400);
+('f4444444-4444-4444-4444-444444444444', 'DHCP_Scope_LabB', '192.168.20.100', '192.168.20.254', 86400),
+('f5555555-5555-5555-5555-555555555555', 'DHCP_Scope_LabC', '192.168.30.100', '192.168.30.254', 86400),
+('f6666666-6666-6666-6666-666666666666', 'DHCP_Scope_LabD', '192.168.40.100', '192.168.40.254', 86400),
+('f7777777-7777-7777-7777-777777777777', 'DHCP_Scope_LabE', '192.168.50.100', '192.168.50.254', 86400),
+('f8888888-8888-8888-8888-888888888888', 'DHCP_Scope_LabF', '192.168.60.100', '192.168.60.254', 86400);
 
 INSERT INTO dns_records (domain_name, record_type, record_value) VALUES
 ('router.labnet.ac.id', 'A', '192.168.10.1'),
 ('switch-core.labnet.ac.id', 'CNAME', 'router.labnet.ac.id');
 
--- 9. LOOP PL/pgSQL SEED 45 COMPUTERS (HYBRID MODEL SPECS) & IPAM
+-- 9. LOOP PL/pgSQL SEED 270 COMPUTERS (6 LABS * 45 PCs) & IPAM
 DO $$
 DECLARE
-    i INT;
+    lab_idx INT;
+    pc_idx INT;
+    global_pc_idx INT := 1;
     lab_id UUID;
     comp_id UUID;
     ip_addr VARCHAR;
+    subnet_base INT;
 BEGIN
-    FOR i IN 1..45 LOOP
-        IF i <= 25 THEN
-            lab_id := 'c1111111-1111-1111-1111-111111111111'; -- Lab A
-            ip_addr := '192.168.10.' || (10 + i);
-        ELSE
-            lab_id := 'c2222222-2222-2222-2222-222222222222'; -- Lab B
-            ip_addr := '192.168.20.' || (10 + i - 25);
+    FOR lab_idx IN 1..6 LOOP
+        IF lab_idx = 1 THEN lab_id := 'c1111111-1111-1111-1111-111111111111'; subnet_base := 10;
+        ELSIF lab_idx = 2 THEN lab_id := 'c2222222-2222-2222-2222-222222222222'; subnet_base := 20;
+        ELSIF lab_idx = 3 THEN lab_id := 'c3333333-3333-3333-3333-333333333333'; subnet_base := 30;
+        ELSIF lab_idx = 4 THEN lab_id := 'c4444444-4444-4444-4444-444444444444'; subnet_base := 40;
+        ELSIF lab_idx = 5 THEN lab_id := 'c5555555-5555-5555-5555-555555555555'; subnet_base := 50;
+        ELSIF lab_idx = 6 THEN lab_id := 'c6666666-6666-6666-6666-666666666666'; subnet_base := 60;
         END IF;
 
-        comp_id := gen_random_uuid();
+        FOR pc_idx IN 1..45 LOOP
+            ip_addr := '192.168.' || subnet_base || '.' || (10 + pc_idx);
+            comp_id := gen_random_uuid();
 
-        -- Insert Computer using HYBRID MODEL (no separate component tables needed)
-        INSERT INTO computers (
-            id, computer_name, laboratory_id, operating_system,
-            processor, motherboard, ram, storage, gpu,
-            monitor_brand, monitor_model, monitor_serial, peripheral_details,
-            condition, status, lifecycle_status
-        ) VALUES (
-            comp_id, 
-            'PC-' || LPAD(i::text, 2, '0'), 
-            lab_id, 
-            CASE WHEN i % 5 = 0 THEN 'Ubuntu'::operating_system_enum ELSE 'Windows 11'::operating_system_enum END,
-            CASE WHEN i % 3 = 0 THEN 'Intel Core i7-12700' ELSE 'AMD Ryzen 5 5600X' END,
-            'Asus Prime H610M-K',
-            CASE WHEN i % 4 = 0 THEN '16GB DDR4 Dual-Channel' ELSE '8GB DDR4' END,
-            'Samsung 980 512GB NVMe M.2 SSD',
-            CASE WHEN i % 6 = 0 THEN 'NVIDIA RTX 3060 12GB' ELSE 'Intel UHD Graphics 730' END,
-            'LG Electronics', 
-            'UltraGear 24GQ50F', 
-            'SN-MONITOR-' || i,
-            'Logitech K120 Keyboard USB + Logitech B100 Mouse Optical USB',
-            CASE 
-                WHEN i = 12 THEN 'Maintenance'::device_condition_enum 
-                WHEN i = 18 THEN 'Rusak Ringan'::device_condition_enum
-                ELSE 'Baik'::device_condition_enum 
-            END,
-            CASE WHEN i = 12 THEN 'Nonaktif'::device_status_enum ELSE 'Aktif'::device_status_enum END,
-            CASE 
-                WHEN i = 12 THEN 'Maintenance'::asset_lifecycle_enum 
-                WHEN i = 45 THEN 'Retired'::asset_lifecycle_enum
-                ELSE 'Active'::asset_lifecycle_enum 
-            END
-        );
+            -- Insert Computer using HYBRID MODEL
+            INSERT INTO computers (
+                id, computer_name, laboratory_id, operating_system,
+                processor, motherboard, ram, storage, gpu,
+                monitor_brand, monitor_model, monitor_serial, peripheral_details,
+                condition, status, lifecycle_status
+            ) VALUES (
+                comp_id, 
+                'PC-' || LPAD(global_pc_idx::text, 2, '0'), 
+                lab_id, 
+                CASE WHEN global_pc_idx % 5 = 0 THEN 'Ubuntu'::operating_system_enum ELSE 'Windows 11'::operating_system_enum END,
+                CASE WHEN global_pc_idx % 3 = 0 THEN 'Intel Core i7-12700' ELSE 'AMD Ryzen 5 5600X' END,
+                'Asus Prime H610M-K',
+                CASE WHEN global_pc_idx % 4 = 0 THEN '16GB DDR4 Dual-Channel' ELSE '8GB DDR4' END,
+                'Samsung 980 512GB NVMe M.2 SSD',
+                CASE WHEN global_pc_idx % 6 = 0 THEN 'NVIDIA RTX 3060 12GB' ELSE 'Intel UHD Graphics 730' END,
+                'LG Electronics', 
+                'UltraGear 24GQ50F', 
+                'SN-MONITOR-' || global_pc_idx,
+                'Logitech K120 Keyboard USB + Logitech B100 Mouse Optical USB',
+                CASE 
+                    WHEN global_pc_idx = 12 THEN 'Maintenance'::device_condition_enum 
+                    WHEN global_pc_idx = 18 THEN 'Rusak Ringan'::device_condition_enum
+                    ELSE 'Baik'::device_condition_enum 
+                END,
+                CASE WHEN global_pc_idx = 12 THEN 'Nonaktif'::device_status_enum ELSE 'Aktif'::device_status_enum END,
+                CASE 
+                    WHEN global_pc_idx = 12 THEN 'Maintenance'::asset_lifecycle_enum 
+                    WHEN global_pc_idx = 45 THEN 'Retired'::asset_lifecycle_enum
+                    ELSE 'Active'::asset_lifecycle_enum 
+                END
+            );
 
-        -- Allocate IP Address in IPAM
-        INSERT INTO ip_addresses (ip_address, subnet_mask, gateway_address, dns_servers, ip_type, allocation_status, computer_id, ip_description) VALUES
-        (ip_addr, '255.255.255.0', 
-         CASE WHEN i <= 25 THEN '192.168.10.1' ELSE '192.168.20.1' END,
-         '8.8.8.8, 1.1.1.1', 'Static', 'Allocated', comp_id, 'Workstation PC-' || LPAD(i::text, 2, '0'));
+            -- Allocate IP Address in IPAM
+            INSERT INTO ip_addresses (ip_address, subnet_mask, gateway_address, dns_servers, ip_type, allocation_status, computer_id, ip_description) VALUES
+            (ip_addr, '255.255.255.0', 
+             '192.168.' || subnet_base || '.1',
+             '8.8.8.8, 1.1.1.1', 'Static', 'Allocated', comp_id, 'Workstation PC-' || LPAD(global_pc_idx::text, 2, '0'));
 
-        -- Seed QR Code
-        INSERT INTO qr_codes (qr_payload, computer_id) VALUES
-        ('https://labnet.ac.id/scan/computer/' || comp_id, comp_id);
+            -- Seed QR Code
+            INSERT INTO qr_codes (qr_payload, computer_id) VALUES
+            ('https://labnet.ac.id/scan/computer/' || comp_id, comp_id);
+
+            global_pc_idx := global_pc_idx + 1;
+        END LOOP;
     END LOOP;
 END $$;
+
 
 -- 10. SEED IPAM FOR ROUTER & SWITCHES
 INSERT INTO ip_addresses (ip_address, subnet_mask, gateway_address, dns_servers, ip_type, allocation_status, network_device_id, ip_description) VALUES

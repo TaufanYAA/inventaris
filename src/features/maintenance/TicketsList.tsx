@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTickets, useCreateTicket, usePromoteTicket } from './queries';
 import { DataTable, Column } from '../../shared/components/ui/DataTable';
 import { Badge } from '../../shared/components/ui/Badge';
@@ -9,6 +9,7 @@ import { Button } from '../../shared/components/ui/Button';
 import { Modal } from '../../shared/components/ui/Modal';
 import { useToast } from '../../shared/components/Toast';
 import { Search, Plus, Ticket, ArrowUpCircle, AlertOctagon } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 
 const statusBadge = (status: string) => {
   const map: Record<string, any> = {
@@ -28,6 +29,25 @@ export const TicketsList: React.FC = () => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(1);
+  const [labs, setLabs] = useState<Array<{ id: string; lab_name: string }>>([]);
+
+  // Load labs dynamically
+  useEffect(() => {
+    async function loadLabs() {
+      const { data } = await supabase
+        .from('laboratories')
+        .select('id, lab_name')
+        .eq('deleted_at', null)
+        .order('lab_name');
+      if (data) {
+        setLabs(data);
+        if (data.length > 0) {
+          setAddForm(p => ({ ...p, laboratory_id: data[0].id }));
+        }
+      }
+    }
+    loadLabs();
+  }, []);
   const [pageSize] = useState(10);
 
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -266,10 +286,7 @@ export const TicketsList: React.FC = () => {
           </div>
           <Select
             label="Laboratorium"
-            options={[
-              { value: 'c1111111-1111-1111-1111-111111111111', label: 'Lab A (Pemrograman)' },
-              { value: 'c2222222-2222-2222-2222-222222222222', label: 'Lab B (Jaringan)' },
-            ]}
+            options={labs.map(l => ({ value: l.id, label: l.lab_name }))}
             value={addForm.laboratory_id}
             onChange={(e) => setAddForm((prev) => ({ ...prev, laboratory_id: e.target.value }))}
           />

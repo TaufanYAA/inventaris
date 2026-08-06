@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useVlans, useCreateVlan } from './queries';
 import { DataTable, Column } from '../../shared/components/ui/DataTable';
 import { Badge } from '../../shared/components/ui/Badge';
@@ -9,12 +9,14 @@ import { Modal } from '../../shared/components/ui/Modal';
 import { Select } from '../../shared/components/ui/Select';
 import { useToast } from '../../shared/components/Toast';
 import { Search, Plus, Network, Layers } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 
 export const VlanList: React.FC = () => {
   const { toast } = useToast();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
+  const [labs, setLabs] = useState<Array<{ id: string; lab_name: string }>>([]);
 
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [addForm, setAddForm] = useState({
@@ -22,6 +24,24 @@ export const VlanList: React.FC = () => {
     vlan_name: '',
     laboratory_id: 'c1111111-1111-1111-1111-111111111111',
   });
+
+  // Load labs dynamically
+  useEffect(() => {
+    async function loadLabs() {
+      const { data } = await supabase
+        .from('laboratories')
+        .select('id, lab_name')
+        .eq('deleted_at', null)
+        .order('lab_name');
+      if (data) {
+        setLabs(data);
+        if (data.length > 0) {
+          setAddForm(p => ({ ...p, laboratory_id: data[0].id }));
+        }
+      }
+    }
+    loadLabs();
+  }, []);
 
   const { data, isLoading } = useVlans();
   const { mutate: createVlan } = useCreateVlan();
@@ -76,11 +96,14 @@ export const VlanList: React.FC = () => {
     },
     {
       header: 'Laboratorium',
-      accessor: (row) => (
-        <Badge variant={row.laboratory_id?.startsWith('c1') ? 'indigo' : 'violet'}>
-          {row.laboratory_id?.startsWith('c1') ? 'Lab Pemrograman (A)' : 'Lab Jaringan (B)'}
-        </Badge>
-      ),
+      accessor: (row) => {
+        const lab = labs.find(l => l.id === row.laboratory_id);
+        return (
+          <Badge variant="indigo">
+            {lab ? lab.lab_name : '—'}
+          </Badge>
+        );
+      },
     },
   ];
 
@@ -147,10 +170,7 @@ export const VlanList: React.FC = () => {
           </div>
           <Select
             label="Laboratorium Penempatan"
-            options={[
-              { value: 'c1111111-1111-1111-1111-111111111111', label: 'Lab A (Pemrograman)' },
-              { value: 'c2222222-2222-2222-2222-222222222222', label: 'Lab B (Jaringan)' },
-            ]}
+            options={labs.map(l => ({ value: l.id, label: l.lab_name }))}
             value={addForm.laboratory_id}
             onChange={(e) => setAddForm((p) => ({ ...p, laboratory_id: e.target.value }))}
           />

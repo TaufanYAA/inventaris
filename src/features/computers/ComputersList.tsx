@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useComputers, useCreateComputer } from './queries';
 import { DataTable, Column } from '../../shared/components/ui/DataTable';
@@ -11,6 +11,7 @@ import { Modal } from '../../shared/components/ui/Modal';
 import { useToast } from '../../shared/components/Toast';
 import { Search, Filter, Plus, FileSpreadsheet, QrCode, Cpu, ShieldCheck } from 'lucide-react';
 import { Database } from '../../types/database.types';
+import { supabase } from '../../lib/supabase';
 
 type ComputerRow = Database['public']['Tables']['computers']['Row'];
 
@@ -23,6 +24,20 @@ export const ComputersList: React.FC = () => {
   const [labFilter, setLabFilter] = useState('');
   const [conditionFilter, setConditionFilter] = useState('');
   const [osFilter, setOsFilter] = useState('');
+  const [labs, setLabs] = useState<Array<{ id: string; lab_name: string }>>([]);
+
+  // Fetch laboratories dynamically
+  useEffect(() => {
+    async function loadLabs() {
+      const { data } = await supabase
+        .from('laboratories')
+        .select('id, lab_name')
+        .eq('deleted_at', null)
+        .order('lab_name');
+      if (data) setLabs(data);
+    }
+    loadLabs();
+  }, []);
   
   // DataTable pagination & sorting state
   const [page, setPage] = useState(1);
@@ -235,8 +250,7 @@ export const ComputersList: React.FC = () => {
           label="Filter Laboratorium"
           options={[
             { value: '', label: 'Semua Laboratorium' },
-            { value: 'c1111111-1111-1111-1111-111111111111', label: 'Lab A (Pemrograman)' },
-            { value: 'c2222222-2222-2222-2222-222222222222', label: 'Lab B (Jaringan)' },
+            ...labs.map(l => ({ value: l.id, label: l.lab_name }))
           ]}
           value={labFilter}
           onChange={e => {
@@ -310,10 +324,7 @@ export const ComputersList: React.FC = () => {
               label="Pilih Komputer Target Pemindaian"
               options={[
                 { value: '', label: 'Pilih PC...' },
-                ...Array.from({ length: 45 }, (_, idx) => {
-                  const val = `PC-${(idx + 1).toString().padStart(2, '0')}`;
-                  return { value: val, label: val };
-                })
+                ...(data?.data || []).map(pc => ({ value: pc.computer_name, label: pc.computer_name }))
               ]}
               value={qrSelectedPC}
               onChange={e => setQrSelectedPC(e.target.value)}
@@ -343,10 +354,7 @@ export const ComputersList: React.FC = () => {
             />
             <Select
               label="Laboratorium Penempatan"
-              options={[
-                { value: 'c1111111-1111-1111-1111-111111111111', label: 'Lab A (Pemrograman)' },
-                { value: 'c2222222-2222-2222-2222-222222222222', label: 'Lab B (Jaringan)' },
-              ]}
+              options={labs.map(l => ({ value: l.id, label: l.lab_name }))}
               value={newPCForm.laboratory_id}
               onChange={e => setNewPCForm(prev => ({ ...prev, laboratory_id: e.target.value }))}
             />
