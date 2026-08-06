@@ -35,6 +35,7 @@ import {
   Line,
   Legend
 } from 'recharts';
+import { supabase } from '../../lib/supabase';
 
 interface PCObject {
   name: string;
@@ -58,6 +59,40 @@ export const DashboardHome: React.FC = () => {
   const [selectedPC, setSelectedPC] = useState<PCObject | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Real Database state
+  const [computers, setComputers] = useState<any[]>([]);
+  const [labs, setLabs] = useState<any[]>([]);
+  const [selectedLabId, setSelectedLabId] = useState('');
+
+  // Fetch labs and computers from database
+  useEffect(() => {
+    async function loadData() {
+      const { data: labsData } = await supabase
+        .from('laboratories')
+        .select('id, lab_name')
+        .is('deleted_at', null)
+        .order('lab_name');
+
+      if (labsData) {
+        setLabs(labsData);
+        if (labsData.length > 0) {
+          setSelectedLabId(labsData[0].id);
+        }
+      }
+
+      const { data: compData } = await supabase
+        .from('computers')
+        .select('id, computer_name, condition, status, operating_system, processor, ram, storage, laboratory_id')
+        .is('deleted_at', null)
+        .order('computer_name');
+
+      if (compData) {
+        setComputers(compData);
+      }
+    }
+    loadData();
+  }, []);
+
   // Initialize simulated network metrics
   useEffect(() => {
     setMetrics(dashboardService.generateRealTimeMetrics(10));
@@ -80,29 +115,7 @@ export const DashboardHome: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Generate 45 PC objects mapping status from seeds
-  const generatePCObjects = (): PCObject[] => {
-    return Array.from({ length: 45 }, (_, i) => {
-      const idNum = i + 1;
-      const name = `PC-${idNum.toString().padStart(2, '0')}`;
-      
-      // Seed values: PC-12 is Maintenance, PC-18 is Rusak (representing Rusak Ringan in seed)
-      let status: 'Aktif' | 'Maintenance' | 'Rusak' = 'Aktif';
-      if (idNum === 12) status = 'Maintenance';
-      if (idNum === 18) status = 'Rusak';
-
-      return {
-        name,
-        status,
-        os: idNum % 5 === 0 ? 'Ubuntu' : 'Windows 11',
-        ip: idNum <= 25 ? `192.168.10.${10 + idNum}` : `192.168.20.${10 + idNum - 25}`,
-        cpu: idNum % 3 === 0 ? 'Intel Core i7-12700' : 'AMD Ryzen 5 5600X',
-        ram: idNum % 4 === 0 ? '16GB DDR4' : '8GB DDR4',
-      };
-    });
-  };
-
-  const pcs = generatePCObjects();
+  const activeLabComputers = computers.filter(c => c.laboratory_id === selectedLabId);
 
   const handlePCMapClick = (pc: PCObject) => {
     setSelectedPC(pc);
@@ -308,74 +321,76 @@ export const DashboardHome: React.FC = () => {
       <Card className="space-y-6">
         <div>
           <h3 className="font-bold text-base text-slate-800 dark:text-white mb-1">Denah Komputer Interaktif (Lab Map)</h3>
-          <p className="text-xs text-slate-500">Representasi fisik meja workstation komputer di dalam ruang laboratorium.</p>
+          <p className="text-xs text-slate-500">Pilih laboratorium untuk melihat tata letak fisik 45 unit workstation komputer secara real-time.</p>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-          {/* Lab A Layout map */}
-          <div className="p-5 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl bg-slate-50/50 dark:bg-slate-950/20">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200">LAB A (Workstations 01 - 25)</h4>
-              <Badge variant="indigo">Lab Pemrograman</Badge>
-            </div>
-            
-            {/* 5x5 Classroom grid layout */}
-            <div className="grid grid-cols-5 gap-3.5 max-w-md mx-auto">
-              {pcs.slice(0, 25).map(pc => (
-                <button
-                  key={pc.name}
-                  onClick={() => handlePCMapClick(pc)}
-                  className={`relative p-2 h-14 rounded-xl border flex flex-col items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm ${
-                    pc.status === 'Aktif'
-                      ? 'bg-emerald-50/70 hover:bg-emerald-100/70 border-emerald-200/50 dark:bg-emerald-950/20 dark:border-emerald-800/30'
-                      : pc.status === 'Maintenance'
-                      ? 'bg-amber-50/70 hover:bg-amber-100/70 border-amber-200/50 dark:bg-amber-950/20 dark:border-amber-800/30'
-                      : 'bg-rose-50/70 hover:bg-rose-100/70 border-rose-200/50 dark:bg-rose-950/20 dark:border-rose-800/30'
-                  }`}
-                >
-                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">PC</span>
-                  <span className="text-sm font-black text-slate-700 dark:text-slate-200">{pc.name.split('-')[1]}</span>
-                  
-                  {/* Status dot */}
-                  <span className={`absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full ${
-                    pc.status === 'Aktif' ? 'bg-emerald-500' : pc.status === 'Maintenance' ? 'bg-amber-500' : 'bg-rose-500'
-                  }`}></span>
-                </button>
-              ))}
-            </div>
+        {/* Lab Selector Tabs */}
+        <div className="flex flex-wrap gap-2.5 pb-3 border-b border-slate-100 dark:border-slate-800">
+          {labs.map(l => (
+            <button
+              key={l.id}
+              type="button"
+              onClick={() => setSelectedLabId(l.id)}
+              className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all duration-200 border ${
+                selectedLabId === l.id
+                  ? 'bg-sky-500 border-sky-500 text-white shadow-md shadow-sky-500/20'
+                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+              }`}
+            >
+              {l.lab_name}
+            </button>
+          ))}
+        </div>
+
+        {/* Dynamic Classroom Grid Map */}
+        <div className="p-6 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl bg-slate-50/50 dark:bg-slate-950/20">
+          <div className="flex items-center justify-between mb-6">
+            <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200 uppercase">
+              {labs.find(l => l.id === selectedLabId)?.lab_name || 'Laboratorium'}
+            </h4>
+            <Badge variant="indigo">Kapasitas: {activeLabComputers.length} / 45 PC Terpasang</Badge>
           </div>
 
-          {/* Lab B Layout map */}
-          <div className="p-5 border border-slate-200/50 dark:border-slate-800/50 rounded-2xl bg-slate-50/50 dark:bg-slate-950/20">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200">LAB B (Workstations 26 - 45)</h4>
-              <Badge variant="violet">Lab Komunikasi Data & Jaringan</Badge>
+          {activeLabComputers.length === 0 ? (
+            <div className="text-center py-12 text-slate-400 text-sm">
+              Tidak ada workstation terdaftar di laboratorium ini.
             </div>
-            
-            {/* 4x5 Classroom grid layout */}
-            <div className="grid grid-cols-5 gap-3.5 max-w-md mx-auto">
-              {pcs.slice(25, 45).map(pc => (
-                <button
-                  key={pc.name}
-                  onClick={() => handlePCMapClick(pc)}
-                  className={`relative p-2 h-14 rounded-xl border flex flex-col items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm ${
-                    pc.status === 'Aktif'
-                      ? 'bg-emerald-50/70 hover:bg-emerald-100/70 border-emerald-200/50 dark:bg-emerald-950/20 dark:border-emerald-800/30'
-                      : pc.status === 'Maintenance'
-                      ? 'bg-amber-50/70 hover:bg-amber-100/70 border-amber-200/50 dark:bg-amber-950/20 dark:border-amber-800/30'
-                      : 'bg-rose-50/70 hover:bg-rose-100/70 border-rose-200/50 dark:bg-rose-950/20 dark:border-rose-800/30'
-                  }`}
-                >
-                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase">PC</span>
-                  <span className="text-sm font-black text-slate-700 dark:text-slate-200">{pc.name.split('-')[1]}</span>
-                  
-                  <span className={`absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full ${
-                    pc.status === 'Aktif' ? 'bg-emerald-500' : pc.status === 'Maintenance' ? 'bg-amber-500' : 'bg-rose-500'
-                  }`}></span>
-                </button>
-              ))}
+          ) : (
+            <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-3.5 max-w-4xl mx-auto">
+              {activeLabComputers.map(pc => {
+                const pcNum = pc.computer_name.split('-')[1] || '00';
+                return (
+                  <button
+                    key={pc.id}
+                    type="button"
+                    onClick={() => handlePCMapClick({
+                      name: pc.computer_name,
+                      status: pc.condition === 'Baik' ? 'Aktif' : pc.condition === 'Maintenance' ? 'Maintenance' : 'Rusak',
+                      os: pc.operating_system,
+                      ip: `192.168.${selectedLabId === 'c1111111-1111-1111-1111-111111111111' ? '10' : selectedLabId === 'c2222222-2222-2222-2222-222222222222' ? '20' : selectedLabId === 'c3333333-3333-3333-3333-333333333333' ? '30' : selectedLabId === 'c4444444-4444-4444-4444-444444444444' ? '40' : selectedLabId === 'c5555555-5555-5555-5555-555555555555' ? '50' : '60'}.${10 + Number(pcNum)}`,
+                      cpu: pc.processor || 'Intel Core i5 / AMD Ryzen 5',
+                      ram: pc.ram || '8GB DDR4'
+                    })}
+                    className={`relative p-2.5 h-16 rounded-2xl border flex flex-col items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm ${
+                      pc.condition === 'Baik'
+                        ? 'bg-emerald-50/70 hover:bg-emerald-100/70 border-emerald-200/50 dark:bg-emerald-950/20 dark:border-emerald-800/30'
+                        : pc.condition === 'Maintenance'
+                        ? 'bg-amber-50/70 hover:bg-amber-100/70 border-amber-200/50 dark:bg-amber-950/20 dark:border-amber-800/30'
+                        : 'bg-rose-50/70 hover:bg-rose-100/70 border-rose-200/50 dark:bg-rose-950/20 dark:border-rose-800/30'
+                    }`}
+                  >
+                    <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">PC</span>
+                    <span className="text-base font-black text-slate-700 dark:text-slate-100 leading-tight">{pcNum}</span>
+                    
+                    {/* Status dot */}
+                    <span className={`absolute top-2 right-2 w-1.5 h-1.5 rounded-full ${
+                      pc.condition === 'Baik' ? 'bg-emerald-500' : pc.condition === 'Maintenance' ? 'bg-amber-500' : 'bg-rose-500'
+                    }`}></span>
+                  </button>
+                );
+              })}
             </div>
-          </div>
+          )}
         </div>
       </Card>
 
