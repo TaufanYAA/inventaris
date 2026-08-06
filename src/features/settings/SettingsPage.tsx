@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Card } from '../../shared/components/ui/Card';
 import { Input } from '../../shared/components/ui/Input';
 import { Button } from '../../shared/components/ui/Button';
+import { Modal } from '../../shared/components/ui/Modal';
 import { useToast } from '../../shared/components/Toast';
 import { useAuth } from '../auth/AuthContext';
 import { supabase } from '../../lib/supabase';
-import { Save, ShieldAlert, School, Mail, Eye, EyeOff, KeyRound, User, Phone, Users, ShieldCheck, Loader2 } from 'lucide-react';
+import { createClient } from '@supabase/supabase-js';
+import { env } from '../../lib/env';
+import { Save, ShieldAlert, School, Mail, Eye, EyeOff, KeyRound, User, Phone, Users, Plus, Trash2, Loader2 } from 'lucide-react';
 
 type UserRow = {
   id: string;
@@ -36,6 +39,15 @@ export default function SettingsPage() {
   // User Management List state
   const [usersList, setUsersList] = useState<UserRow[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
+
+  // Create User state
+  const [createUserModalOpen, setCreateUserModalOpen] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newFullName, setNewFullName] = useState('');
+  const [newPhone, setNewPhone] = useState('');
+  const [newRole, setNewRole] = useState('Mahasiswa');
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
 
   // Fetch settings, profile, and users
   const loadUsersList = async () => {
@@ -218,6 +230,102 @@ export default function SettingsPage() {
     }
   };
 
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsCreatingUser(true);
+    try {
+      // 1. Sign up the user with the temporary client
+      const tempClient = createClient(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_ANON_KEY, {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+          detectSessionInUrl: false
+        }
+      });
+
+      const { data: signUpData, error: signUpError } = await tempClient.auth.signUp({
+        email: newEmail,
+        password: newPassword,
+      });
+
+      if (signUpError) throw signUpError;
+
+      const newUser = signUpData.user;
+      if (!newUser) throw new Error('Gagal mendaftarkan user auth.');
+
+      // 2. Insert into public.users
+      const { error: profileError } = await supabase
+        .from('users')
+        .insert({
+          id: newUser.id,
+          username: newEmail.split('@')[0],
+          email: newEmail,
+          password_hash: 'auth_managed',
+          full_name: newFullName,
+          phone_number: newPhone || null,
+        });
+
+      if (profileError) throw profileError;
+
+      // 3. Link role in public.user_roles
+      const { data: roleData } = await supabase
+        .from('roles')
+        .select('id')
+        .eq('role_name', newRole)
+        .single();
+
+      if (roleData) {
+        await supabase
+          .from('user_roles')
+          .insert({
+            user_id: newUser.id,
+            role_id: roleData.id,
+          });
+      }
+
+      toast('success', `User ${newFullName} berhasil ditambahkan.`);
+      setCreateUserModalOpen(false);
+      
+      // Clear form
+      setNewEmail('');
+      setNewPassword('');
+      setNewFullName('');
+      setNewPhone('');
+      setNewRole('Mahasiswa');
+
+      // Refresh list
+      loadUsersList();
+    } catch (err: any) {
+      toast('error', err.message || 'Gagal menambahkan user baru.');
+    } finally {
+      setIsCreatingUser(false);
+    }
+  };
+
+  const handleDeleteUser = async (targetUserId: string, name: string) => {
+    if (targetUserId === user?.id) {
+      toast('error', 'Anda tidak bisa menghapus akun Anda sendiri.');
+      return;
+    }
+
+    if (!window.confirm(`Apakah Anda yakin ingin menghapus user ${name}?`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', targetUserId);
+
+      if (error) throw error;
+      toast('success', `User ${name} berhasil dihapus.`);
+      loadUsersList();
+    } catch (err: any) {
+      toast('error', err.message || 'Gagal menghapus user.');
+    }
+  };
+
   if (isLoadingSettings || isLoadingProfile) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
@@ -358,9 +466,19 @@ export default function SettingsPage() {
       {/* BOTTOM SECTION: USER MANAGEMENT TABLE */}
       {user?.role === 'Admin' && (
         <Card className="p-6 space-y-6">
-          <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
-            <Users className="w-5 h-5 text-sky-500" />
-            <h2 className="font-semibold text-slate-800 dark:text-white">Daftar Pengguna & Hak Akses (RBAC)</h2>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-center gap-2">
+              <Users className="w-5 h-5 text-sky-500" />
+              <h2 className="font-semibold text-slate-800 dark:text-white">Daftar Pengguna & Hak Akses (RBAC)</h2>
+            </div>
+            <Button
+              variant="primary"
+              size="sm"
+              icon={<Plus className="w-4 h-4" />}
+              onClick={() => setCreateUserModalOpen(true)}
+            >
+              Tambah Pengguna
+            </Button>
           </div>
 
           {isLoadingUsers ? (
@@ -375,7 +493,8 @@ export default function SettingsPage() {
                     <th scope="col" className="px-6 py-3 rounded-l-lg">Nama Pengguna</th>
                     <th scope="col" className="px-6 py-3">Email</th>
                     <th scope="col" className="px-6 py-3">Nomor Telepon</th>
-                    <th scope="col" className="px-6 py-3 rounded-r-lg">Peran (Role)</th>
+                    <th scope="col" className="px-6 py-3">Peran (Role)</th>
+                    <th scope="col" className="px-6 py-3 rounded-r-lg w-20 text-center">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -397,6 +516,15 @@ export default function SettingsPage() {
                           <option value="Mahasiswa">Mahasiswa</option>
                         </select>
                       </td>
+                      <td className="px-6 py-4 text-center">
+                        <button
+                          onClick={() => handleDeleteUser(usr.id, usr.full_name)}
+                          className="p-1.5 text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg transition-colors"
+                          title="Hapus Pengguna"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -405,6 +533,72 @@ export default function SettingsPage() {
           )}
         </Card>
       )}
+
+      {/* ADD NEW USER MODAL FORM */}
+      <Modal
+        isOpen={createUserModalOpen}
+        onClose={() => setCreateUserModalOpen(false)}
+        title="Tambah Pengguna Baru"
+      >
+        <form onSubmit={handleCreateUser} className="space-y-4">
+          <Input
+            label="Nama Lengkap"
+            placeholder="Masukkan nama lengkap"
+            value={newFullName}
+            onChange={e => setNewFullName(e.target.value)}
+            required
+          />
+
+          <Input
+            label="Alamat Email"
+            type="email"
+            placeholder="username@labnet.ac.id"
+            value={newEmail}
+            onChange={e => setNewEmail(e.target.value)}
+            required
+          />
+
+          <Input
+            label="Password Kredensial"
+            type="password"
+            placeholder="Minimal 6 karakter"
+            value={newPassword}
+            onChange={e => setNewPassword(e.target.value)}
+            required
+          />
+
+          <Input
+            label="Nomor Telepon / HP (opsional)"
+            placeholder="0812xxxxxxxx"
+            value={newPhone}
+            onChange={e => setNewPhone(e.target.value)}
+          />
+
+          <select
+            value={newRole}
+            onChange={(e) => setNewRole(e.target.value)}
+            className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
+          >
+            <option value="Mahasiswa">Mahasiswa</option>
+            <option value="Operator">Operator</option>
+            <option value="Teknisi">Teknisi</option>
+            <option value="Laboran">Laboran</option>
+            <option value="Admin">Admin</option>
+          </select>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+            <Button variant="outline" onClick={() => setCreateUserModalOpen(false)}>Batal</Button>
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={isCreatingUser}
+              icon={isCreatingUser ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+            >
+              {isCreatingUser ? 'Mendaftarkan...' : 'Tambah User'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }
