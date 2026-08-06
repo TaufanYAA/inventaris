@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useComputer, useComputerHistory, useSwapHardware, useUpdateComputer } from './queries';
+import { useComputer, useComputerHistory, useSwapHardware, useUpdateComputer, useDeleteComputer } from './queries';
 import { useCreateTicket } from '../maintenance/queries';
 import { supabase } from '../../lib/supabase';
 import { Card } from '../../shared/components/ui/Card';
@@ -27,7 +27,8 @@ import {
   Info,
   Server,
   Monitor,
-  Wrench as WrenchIcon
+  Wrench as WrenchIcon,
+  Trash2
 } from 'lucide-react';
 import { Database } from '../../types/database.types';
 
@@ -44,6 +45,7 @@ export const ComputerDetail: React.FC = () => {
   const { mutate: updateComputer } = useUpdateComputer();
   const { mutate: swapHardware } = useSwapHardware();
   const { mutate: createTicket } = useCreateTicket();
+  const { mutate: deleteComputer } = useDeleteComputer();
 
   // Modals state
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -172,6 +174,21 @@ export const ComputerDetail: React.FC = () => {
         },
       }
     );
+  };
+
+  const handleDeletePC = () => {
+    if (!id || !user || !computer) return;
+    if (window.confirm(`Apakah Anda yakin ingin menghapus komputer ${computer.computer_name} dari inventaris?`)) {
+      deleteComputer({ id, deletedBy: user.fullName || 'Admin' }, {
+        onSuccess: () => {
+          toast('success', `Komputer ${computer.computer_name} berhasil dihapus.`);
+          navigate('/computers');
+        },
+        onError: (err: any) => {
+          toast('error', err.message || 'Gagal menghapus komputer.');
+        }
+      });
+    }
   };
 
   const handleTicketSubmit = (e: React.FormEvent) => {
@@ -313,6 +330,11 @@ export const ComputerDetail: React.FC = () => {
                 <Button variant="outline" size="sm" icon={<RefreshCw className="w-4 h-4" />} onClick={() => setEditModalOpen(true)}>
                   Update Spek
                 </Button>
+                {user.role === 'Admin' && (
+                  <Button variant="danger" size="sm" icon={<Trash2 className="w-4 h-4" />} onClick={handleDeletePC}>
+                    Hapus Komputer
+                  </Button>
+                )}
               </>
             )}
             <Button variant="danger" size="sm" icon={<Wrench className="w-4 h-4" />} onClick={() => setTicketModalOpen(true)}>
