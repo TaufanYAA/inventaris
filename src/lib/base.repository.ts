@@ -42,7 +42,9 @@ export class BaseRepository<TTable extends keyof Database['public']['Tables']> {
     if (options.filters) {
       Object.entries(options.filters).forEach(([key, val]) => {
         if (key === 'includeDeleted') return;
-        if (val !== undefined && val !== null) {
+        if (val === null) {
+          query = query.is(key, null);
+        } else if (val !== undefined) {
           if (Array.isArray(val)) {
             query = query.in(key, val);
           } else {
