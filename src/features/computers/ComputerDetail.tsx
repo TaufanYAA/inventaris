@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useComputer, useComputerHistory, useSwapHardware, useUpdateComputer } from './queries';
 import { useCreateTicket } from '../maintenance/queries';
+import { supabase } from '../../lib/supabase';
 import { Card } from '../../shared/components/ui/Card';
 import { Badge } from '../../shared/components/ui/Badge';
 import { Button } from '../../shared/components/ui/Button';
@@ -58,7 +59,22 @@ export const ComputerDetail: React.FC = () => {
     gpu: '',
     condition: 'Baik' as any,
     status: 'Aktif' as any,
+    laboratory_id: '',
   });
+
+  const [labs, setLabs] = useState<Array<{ id: string; lab_name: string }>>([]);
+
+  React.useEffect(() => {
+    async function loadLabs() {
+      const { data } = await supabase
+        .from('laboratories')
+        .select('id, lab_name')
+        .is('deleted_at', null)
+        .order('lab_name');
+      if (data) setLabs(data);
+    }
+    loadLabs();
+  }, []);
 
   // Swap component form state
   const [swapForm, setSwapForm] = useState({
@@ -86,6 +102,7 @@ export const ComputerDetail: React.FC = () => {
         gpu: computer.gpu || '',
         condition: computer.condition,
         status: computer.status,
+        laboratory_id: computer.laboratory_id,
       });
 
       // Pre-fill previous model based on current selection in swap form
@@ -519,6 +536,13 @@ export const ComputerDetail: React.FC = () => {
             label="Kartu Grafis GPU"
             value={editForm.gpu}
             onChange={e => setEditForm(prev => ({ ...prev, gpu: e.target.value }))}
+          />
+
+          <Select
+            label="Laboratorium (Lokasi)"
+            options={labs.map(l => ({ value: l.id, label: l.lab_name }))}
+            value={editForm.laboratory_id}
+            onChange={e => setEditForm(prev => ({ ...prev, laboratory_id: e.target.value }))}
           />
 
           <div className="grid grid-cols-2 gap-4">
