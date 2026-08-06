@@ -74,29 +74,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Helper: Query user roles from DB join tables
   const fetchUserRole = async (userId: string, email: string) => {
     try {
+      // 1. Cari user di public.users berdasarkan email (agar sinkron dengan seed data UUID)
+      const { data: profile, error: profileError } = await supabase
+        .from('users')
+        .select('id, full_name')
+        .eq('email', email)
+        .single();
+
+      let targetUserId = userId;
+      let fullName = 'Staff User';
+
+      if (!profileError && profile) {
+        targetUserId = profile.id;
+        fullName = profile.full_name;
+      }
+
+      // 2. Cari role berdasarkan targetUserId
       const { data: userRoleData, error } = await supabase
         .from('user_roles')
         .select(`
           role:roles(role_name)
         `)
-        .eq('user_id', userId)
+        .eq('user_id', targetUserId)
         .single();
 
       if (error) throw error;
       
       const roleName = ((userRoleData as any)?.role?.role_name || 'Mahasiswa') as UserRole;
-      
-      // Fetch full name from profile/users table
-      const { data: profile } = await supabase
-        .from('users')
-        .select('full_name')
-        .eq('id', userId)
-        .single();
 
       setUser({
         id: userId,
         email,
-        fullName: profile?.full_name || 'Staff User',
+        fullName: fullName,
         role: roleName,
       });
     } catch (err) {

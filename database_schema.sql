@@ -125,7 +125,9 @@ BEGIN
         SELECT 1
         FROM user_roles ur
         JOIN roles r ON ur.role_id = r.id
-        WHERE ur.user_id = auth.uid() AND r.role_name = target_role
+        JOIN users u ON ur.user_id = u.id
+        WHERE u.email = (SELECT email FROM auth.users WHERE id = auth.uid()) 
+          AND r.role_name = target_role
     );
 END;
 $$ language 'plpgsql' security definer;
