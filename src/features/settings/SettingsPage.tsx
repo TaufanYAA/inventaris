@@ -5,7 +5,15 @@ import { Button } from '../../shared/components/ui/Button';
 import { useToast } from '../../shared/components/Toast';
 import { useAuth } from '../auth/AuthContext';
 import { supabase } from '../../lib/supabase';
-import { Save, ShieldAlert, School, Mail, Eye, EyeOff, KeyRound, User, Phone, Loader2 } from 'lucide-react';
+import { Save, ShieldAlert, School, Mail, Eye, EyeOff, KeyRound, User, Phone, Users, ShieldCheck, Loader2 } from 'lucide-react';
+
+type UserRow = {
+  id: string;
+  full_name: string;
+  email: string;
+  phone_number: string | null;
+  roleName: string;
+};
 
 export default function SettingsPage() {
   const { toast } = useToast();
@@ -25,7 +33,58 @@ export default function SettingsPage() {
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
 
-  // Fetch settings & user profile from DB
+  // User Management List state
+  const [usersList, setUsersList] = useState<UserRow[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(true);
+
+  // Fetch settings, profile, and users
+  const loadUsersList = async () => {
+    setIsLoadingUsers(true);
+    try {
+      const { data: usersData, error: usersError } = await supabase
+        .from('users')
+        .select(`
+          id,
+          full_name,
+          email,
+          phone_number
+        `)
+        .is('deleted_at', null)
+        .order('full_name');
+
+      if (usersError) throw usersError;
+
+      if (usersData) {
+        // Fetch all roles & user_roles
+        const { data: userRolesData } = await supabase
+          .from('user_roles')
+          .select('user_id, role_id');
+
+        const { data: rolesData } = await supabase
+          .from('roles')
+          .select('id, role_name');
+
+        const mapped = usersData.map((u: any) => {
+          const relation = userRolesData?.find((ur: any) => ur.user_id === u.id);
+          const role = rolesData?.find((r: any) => r.id === relation?.role_id);
+          return {
+            id: u.id,
+            full_name: u.full_name,
+            email: u.email,
+            phone_number: u.phone_number,
+            roleName: role?.role_name || 'Mahasiswa'
+          };
+        });
+
+        setUsersList(mapped);
+      }
+    } catch (err: any) {
+      console.error('Gagal memuat daftar user:', err);
+    } finally {
+      setIsLoadingUsers(false);
+    }
+  };
+
   useEffect(() => {
     async function loadSettings() {
       setIsLoadingSettings(true);
@@ -75,6 +134,7 @@ export default function SettingsPage() {
 
     loadSettings();
     loadUserProfile();
+    loadUsersList();
   }, [user]);
 
   const handleSaveSettings = async (e: React.FormEvent) => {
@@ -124,6 +184,40 @@ export default function SettingsPage() {
     }
   };
 
+  const handleChangeRole = async (targetUserId: string, newRoleName: string) => {
+    try {
+      const { data: roleData, error: roleError } = await supabase
+        .from('roles')
+        .select('id')
+        .eq('role_name', newRoleName)
+        .single();
+
+      if (roleError) throw roleError;
+
+      if (roleData) {
+        // 1. Delete old user roles mapping
+        await supabase
+          .from('user_roles')
+          .delete()
+          .eq('user_id', targetUserId);
+
+        // 2. Insert new user roles mapping
+        const { error: linkError } = await supabase
+          .from('user_roles')
+          .insert({
+            user_id: targetUserId,
+            role_id: roleData.id
+          });
+
+        if (linkError) throw linkError;
+        toast('success', `Peran user berhasil diubah menjadi ${newRoleName}.`);
+        loadUsersList();
+      }
+    } catch (err: any) {
+      toast('error', err.message || 'Gagal mengubah peran user.');
+    }
+  };
+
   if (isLoadingSettings || isLoadingProfile) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
@@ -138,10 +232,10 @@ export default function SettingsPage() {
       {/* HEADER */}
       <div>
         <h1 className="text-2xl font-extrabold text-slate-800 dark:text-white tracking-tight">
-          Pengaturan & Profil
+          Pengaturan & Manajemen User
         </h1>
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Ubah konfigurasi parameter global sistem serta kelola profil nama akun Anda.
+          Ubah konfigurasi parameter global, kelola profil, serta atur hak akses peran (*RBAC*) pengguna.
         </p>
       </div>
 
@@ -260,6 +354,57 @@ export default function SettingsPage() {
           </form>
         </div>
       </div>
+
+      {/* BOTTOM SECTION: USER MANAGEMENT TABLE */}
+      {user?.role === 'Admin' && (
+        <Card className="p-6 space-y-6">
+          <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+            <Users className="w-5 h-5 text-sky-500" />
+            <h2 className="font-semibold text-slate-800 dark:text-white">Daftar Pengguna & Hak Akses (RBAC)</h2>
+          </div>
+
+          {isLoadingUsers ? (
+            <div className="flex justify-center items-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left text-slate-500 dark:text-slate-400">
+                <thead className="text-xs text-slate-700 dark:text-slate-300 uppercase bg-slate-50 dark:bg-slate-900">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 rounded-l-lg">Nama Pengguna</th>
+                    <th scope="col" className="px-6 py-3">Email</th>
+                    <th scope="col" className="px-6 py-3">Nomor Telepon</th>
+                    <th scope="col" className="px-6 py-3 rounded-r-lg">Peran (Role)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {usersList.map((usr) => (
+                    <tr key={usr.id} className="bg-white dark:bg-slate-950 hover:bg-slate-50/50 transition-colors">
+                      <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">{usr.full_name}</td>
+                      <td className="px-6 py-4 font-mono text-xs">{usr.email}</td>
+                      <td className="px-6 py-4">{usr.phone_number || '—'}</td>
+                      <td className="px-6 py-4">
+                        <select
+                          value={usr.roleName}
+                          onChange={(e) => handleChangeRole(usr.id, e.target.value)}
+                          className="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        >
+                          <option value="Admin">Admin</option>
+                          <option value="Laboran">Laboran</option>
+                          <option value="Teknisi">Teknisi</option>
+                          <option value="Operator">Operator</option>
+                          <option value="Mahasiswa">Mahasiswa</option>
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
+      )}
     </div>
   );
 }
