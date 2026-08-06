@@ -31,7 +31,7 @@ export const VlanList: React.FC = () => {
       const { data } = await supabase
         .from('laboratories')
         .select('id, lab_name')
-        .eq('deleted_at', null)
+        .is('deleted_at', null)
         .order('lab_name');
       if (data) {
         setLabs(data);
