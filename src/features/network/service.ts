@@ -61,6 +61,23 @@ export class NetworkService extends BaseService<'network_devices'> {
     }
   }
 
+  // Update Switch Port
+  async updateSwitchPort(portId: string, portData: any) {
+    try {
+      switchPortUpdateSchema.parse(portData);
+      const { data, error } = await supabase
+        .from('switch_ports')
+        .update(portData)
+        .eq('id', portId)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    } catch (err) {
+      this.handleError(err);
+    }
+  }
+
   // Fetch SNMP Uptime/Resource stats
   async getDeviceSnmp(deviceId: string, limit = 50) {
     try {
@@ -123,6 +140,51 @@ export class NetworkService extends BaseService<'network_devices'> {
   async getDnsRecords(filters: Record<string, any> = {}) {
     try {
       return await this.networkRepository.getDnsRecords(filters);
+    } catch (err) {
+      this.handleError(err);
+    }
+  }
+
+  // Create VLAN
+  async createVlan(vlanData: any) {
+    try {
+      const { data, error } = await supabase
+        .from('vlans')
+        .insert(vlanData)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    } catch (err) {
+      this.handleError(err);
+    }
+  }
+
+  // Create DHCP Scope
+  async createDhcpScope(dhcpData: any) {
+    try {
+      const { data, error } = await supabase
+        .from('dhcp_scopes')
+        .insert(dhcpData)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    } catch (err) {
+      this.handleError(err);
+    }
+  }
+
+  // Create DNS Record
+  async createDnsRecord(dnsData: any) {
+    try {
+      const { data, error } = await supabase
+        .from('dns_records')
+        .insert(dnsData)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
     } catch (err) {
       this.handleError(err);
     }

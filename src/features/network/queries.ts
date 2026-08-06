@@ -62,6 +62,17 @@ export function useSwitchPorts(deviceId: string) {
   });
 }
 
+// Hook: Update switch port
+export function useUpdateSwitchPort() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => networkService.updateSwitchPort(id, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['network'] });
+    },
+  });
+}
+
 // Hook: Get IP address allocation pool
 export function useIpPool(filters: Record<string, any> = {}) {
   return useQuery({
@@ -127,11 +138,33 @@ export function useVlans(filters: Record<string, any> = {}) {
   });
 }
 
+// Hook: Create VLAN
+export function useCreateVlan() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: any) => networkService.createVlan(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [...networkKeys.all, 'vlans'] });
+    },
+  });
+}
+
 // Hook: Get DHCP Scopes
 export function useDhcpScopes(filters: Record<string, any> = {}) {
   return useQuery({
     queryKey: [...networkKeys.all, 'dhcp', { filters }] as const,
     queryFn: () => networkService.getDhcpScopes(filters),
+  });
+}
+
+// Hook: Create DHCP Scope
+export function useCreateDhcpScope() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: any) => networkService.createDhcpScope(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [...networkKeys.all, 'dhcp'] });
+    },
   });
 }
 
@@ -142,3 +175,15 @@ export function useDnsRecords(filters: Record<string, any> = {}) {
     queryFn: () => networkService.getDnsRecords(filters),
   });
 }
+
+// Hook: Create DNS Record
+export function useCreateDnsRecord() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: any) => networkService.createDnsRecord(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [...networkKeys.all, 'dns'] });
+    },
+  });
+}
+

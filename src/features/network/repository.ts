@@ -112,7 +112,11 @@ export class NetworkRepository extends BaseRepository<'network_devices'> {
       .from('dhcp_scopes')
       .select(`
         *,
-        vlan:vlans(id, vlan_number, vlan_name)
+        subnet:subnets(
+          id,
+          subnet_cidr,
+          vlan:vlans(id, vlan_number, vlan_name)
+        )
       `, { count: 'exact' })
       .match(filters)
       .order('scope_name', { ascending: true });
