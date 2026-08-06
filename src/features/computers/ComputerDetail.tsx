@@ -25,6 +25,7 @@ import {
   RefreshCw,
   Info,
   Server,
+  Monitor,
   Wrench as WrenchIcon
 } from 'lucide-react';
 import { Database } from '../../types/database.types';
