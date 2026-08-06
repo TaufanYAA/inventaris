@@ -1167,3 +1167,8 @@ CREATE POLICY select_users ON users FOR SELECT TO authenticated USING (true);
 CREATE POLICY select_roles ON roles FOR SELECT TO authenticated USING (true);
 CREATE POLICY select_user_roles ON user_roles FOR SELECT TO authenticated USING (true);
 CREATE POLICY update_own_user ON users FOR UPDATE TO authenticated USING (auth.uid() = id);
+
+-- 33. system_settings RLS policies
+ALTER TABLE system_settings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY select_settings ON system_settings FOR SELECT TO authenticated USING (true);
+CREATE POLICY modify_settings ON system_settings FOR ALL TO authenticated USING (check_user_role('Admin'));
