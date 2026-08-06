@@ -18,6 +18,12 @@ type UserRow = {
   roleName: string;
 };
 
+type LabRow = {
+  id: string;
+  lab_name: string;
+  lab_description: string;
+};
+
 export default function SettingsPage() {
   const { toast } = useToast();
   const { user } = useAuth();
@@ -40,6 +46,11 @@ export default function SettingsPage() {
   const [usersList, setUsersList] = useState<UserRow[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
 
+  // Laboratories List state
+  const [labsList, setLabsList] = useState<LabRow[]>([]);
+  const [isLoadingLabs, setIsLoadingLabs] = useState(true);
+  const [isUpdatingLabId, setIsUpdatingLabId] = useState<string | null>(null);
+
   // Create User state
   const [createUserModalOpen, setCreateUserModalOpen] = useState(false);
   const [newEmail, setNewEmail] = useState('');
@@ -49,7 +60,7 @@ export default function SettingsPage() {
   const [newRole, setNewRole] = useState('Mahasiswa');
   const [isCreatingUser, setIsCreatingUser] = useState(false);
 
-  // Fetch settings, profile, and users
+  // Fetch settings, profile, users, and laboratories
   const loadUsersList = async () => {
     setIsLoadingUsers(true);
     try {
@@ -94,6 +105,24 @@ export default function SettingsPage() {
       console.error('Gagal memuat daftar user:', err);
     } finally {
       setIsLoadingUsers(false);
+    }
+  };
+
+  const loadLabsList = async () => {
+    setIsLoadingLabs(true);
+    try {
+      const { data, error } = await supabase
+        .from('laboratories')
+        .select('id, lab_name, lab_description')
+        .is('deleted_at', null)
+        .order('lab_name');
+
+      if (error) throw error;
+      if (data) setLabsList(data);
+    } catch (err: any) {
+      console.error('Gagal memuat daftar lab:', err);
+    } finally {
+      setIsLoadingLabs(false);
     }
   };
 
@@ -147,6 +176,7 @@ export default function SettingsPage() {
     loadSettings();
     loadUserProfile();
     loadUsersList();
+    loadLabsList();
   }, [user]);
 
   const handleSaveSettings = async (e: React.FormEvent) => {
@@ -227,6 +257,24 @@ export default function SettingsPage() {
       }
     } catch (err: any) {
       toast('error', err.message || 'Gagal mengubah peran user.');
+    }
+  };
+
+  const handleUpdateLabName = async (labId: string, newName: string) => {
+    setIsUpdatingLabId(labId);
+    try {
+      const { error } = await supabase
+        .from('laboratories')
+        .update({ lab_name: newName })
+        .eq('id', labId);
+
+      if (error) throw error;
+      toast('success', 'Nama laboratorium berhasil diperbarui.');
+      loadLabsList();
+    } catch (err: any) {
+      toast('error', err.message || 'Gagal memperbarui nama laboratorium.');
+    } finally {
+      setIsUpdatingLabId(null);
     }
   };
 
@@ -462,6 +510,55 @@ export default function SettingsPage() {
           </form>
         </div>
       </div>
+
+      {/* MID-SECTION: LABORATORIES MANAGEMENT */}
+      {user?.role === 'Admin' && (
+        <Card className="p-6 space-y-6">
+          <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+            <School className="w-5 h-5 text-indigo-500" />
+            <h2 className="font-semibold text-slate-800 dark:text-white">Manajemen Nama Laboratorium</h2>
+          </div>
+
+          {isLoadingLabs ? (
+            <div className="flex justify-center items-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {labsList.map((lab) => (
+                <div key={lab.id} className="p-4 border border-slate-200 dark:border-slate-850 rounded-2xl bg-slate-50/50 dark:bg-slate-900/10 space-y-3 shadow-sm">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block">ID: {lab.id.split('-')[0]}</label>
+                    <input
+                      type="text"
+                      value={lab.lab_name}
+                      onChange={(e) => {
+                        const updated = labsList.map(l => l.id === lab.id ? { ...l, lab_name: e.target.value } : l);
+                        setLabsList(updated);
+                      }}
+                      className="w-full px-3.5 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl text-sm bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all duration-200 font-medium"
+                    />
+                  </div>
+                  <div className="flex justify-between items-center pt-1.5 border-t border-slate-100 dark:border-slate-900">
+                    <span className="text-[10px] text-slate-400 max-w-[150px] truncate block" title={lab.lab_description}>
+                      {lab.lab_description}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleUpdateLabName(lab.id, lab.lab_name)}
+                      disabled={isUpdatingLabId === lab.id}
+                      icon={isUpdatingLabId === lab.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+                    >
+                      {isUpdatingLabId === lab.id ? 'Saving' : 'Simpan'}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      )}
 
       {/* BOTTOM SECTION: USER MANAGEMENT TABLE */}
       {user?.role === 'Admin' && (
