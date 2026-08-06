@@ -47,7 +47,7 @@ INSERT INTO roles (role_name, role_description) VALUES
 
 -- 2. SEED DEFAULT USERS
 INSERT INTO users (id, username, email, password_hash, full_name, phone_number) VALUES
-('a1111111-1111-1111-1111-111111111111', 'superadmin', 'admin@labnet.ac.id', '$2b$12$eImiTXGVGb1t.IbX/7lJLe.49vX.25eX.25eX.25eX.25eX.25eX.', 'Dr. Eng. Hermawan, M.T.', '081234567890'),
+('84fc95fe-bf79-4bdb-a51a-5933297c80db', 'superadmin', 'admin@labnet.ac.id', '$2b$12$eImiTXGVGb1t.IbX/7lJLe.49vX.25eX.25eX.25eX.25eX.25eX.', 'Dr. Eng. Hermawan, M.T.', '081234567890'),
 ('a2222222-2222-2222-2222-222222222222', 'laboran_budi', 'budi.laboran@labnet.ac.id', '$2b$12$eImiTXGVGb1t.IbX/7lJLe.49vX.25eX.25eX.25eX.25eX.25eX.', 'Budi Santoso, A.Md.', '082345678901'),
 ('a3333333-3333-3333-3333-333333333333', 'teknisi_rian', 'rian.teknisi@labnet.ac.id', '$2b$12$eImiTXGVGb1t.IbX/7lJLe.49vX.25eX.25eX.25eX.25eX.25eX.', 'Rian Hidayat', '083456789012'),
 ('a4444444-4444-4444-4444-444444444444', 'dosen_ranti', 'ranti.dosen@labnet.ac.id', '$2b$12$eImiTXGVGb1t.IbX/7lJLe.49vX.25eX.25eX.25eX.25eX.25eX.', 'Ranti Sulastri, M.Kom.', '084567890123'),
@@ -55,41 +55,12 @@ INSERT INTO users (id, username, email, password_hash, full_name, phone_number) 
 
 -- Assign Roles
 INSERT INTO user_roles (user_id, role_id) VALUES
-('a1111111-1111-1111-1111-111111111111', (SELECT id FROM roles WHERE role_name = 'Admin')),
+('84fc95fe-bf79-4bdb-a51a-5933297c80db', (SELECT id FROM roles WHERE role_name = 'Admin')),
 ('a2222222-2222-2222-2222-222222222222', (SELECT id FROM roles WHERE role_name = 'Laboran')),
 ('a3333333-3333-3333-3333-333333333333', (SELECT id FROM roles WHERE role_name = 'Teknisi')),
 ('a4444444-4444-4444-4444-444444444444', (SELECT id FROM roles WHERE role_name = 'Operator')),
 ('a5555555-5555-5555-5555-555555555555', (SELECT id FROM roles WHERE role_name = 'Mahasiswa'));
 
--- Map any existing Supabase Auth users to public.users and assign them the 'Admin' role
-DO $$
-DECLARE
-    auth_user RECORD;
-    admin_role_id UUID;
-BEGIN
-    SELECT id INTO admin_role_id FROM roles WHERE role_name = 'Admin';
-    
-    FOR auth_user IN SELECT id, email FROM auth.users LOOP
-        -- Insert user in public.users if not already exists
-        INSERT INTO public.users (id, username, email, password_hash, full_name)
-        VALUES (
-            auth_user.id, 
-            split_part(auth_user.email, '@', 1), 
-            auth_user.email, 
-            '$2b$12$eImiTXGVGb1t.IbX/7lJLe.49vX.25eX.25eX.25eX.25eX.25eX.', 
-            'Administrator (' || split_part(auth_user.email, '@', 1) || ')'
-        )
-        ON CONFLICT (email) DO NOTHING;
-
-        -- Assign Admin role
-        INSERT INTO public.user_roles (user_id, role_id)
-        VALUES (
-            (SELECT id FROM public.users WHERE email = auth_user.email), 
-            admin_role_id
-        )
-        ON CONFLICT (user_id, role_id) DO NOTHING;
-    END LOOP;
-END $$;
 
 -- 3. SEED ROOMS
 INSERT INTO rooms (id, room_name, location_floor, room_description) VALUES
@@ -356,9 +327,9 @@ INSERT INTO consumable_items (id, item_name, item_brand, stock_quantity, min_sto
 
 -- Trigger will update stock_quantity on transaction insert
 INSERT INTO consumable_transactions (consumable_item_id, transaction_type, quantity, transaction_notes, created_by) VALUES
-('81111111-1111-1111-1111-111111111111', 'Stock In', 200, 'Pengadaan awal semester', 'a1111111-1111-1111-1111-111111111111'),
-('82222222-2222-2222-2222-222222222222', 'Stock In', 5, 'Pembelian Noctua thermal grease', 'a1111111-1111-1111-1111-111111111111'),
-('83333333-3333-3333-3333-333333333333', 'Stock In', 3, 'Pengadaan UTP Kabel Belden 3 Roll', 'a1111111-1111-1111-1111-111111111111');
+('81111111-1111-1111-1111-111111111111', 'Stock In', 200, 'Pengadaan awal semester', '84fc95fe-bf79-4bdb-a51a-5933297c80db'),
+('82222222-2222-2222-2222-222222222222', 'Stock In', 5, 'Pembelian Noctua thermal grease', '84fc95fe-bf79-4bdb-a51a-5933297c80db'),
+('83333333-3333-3333-3333-333333333333', 'Stock In', 3, 'Pengadaan UTP Kabel Belden 3 Roll', '84fc95fe-bf79-4bdb-a51a-5933297c80db');
 
 INSERT INTO consumable_transactions (consumable_item_id, transaction_type, quantity, computer_id, transaction_notes, created_by) VALUES
 ('81111111-1111-1111-1111-111111111111', 'Stock Out', 10, (SELECT id FROM computers WHERE computer_name = 'PC-01'), 'Digunakan untuk crimping kabel LAN baru workstation PC-01', 'a3333333-3333-3333-3333-333333333333'),
@@ -371,7 +342,7 @@ INSERT INTO system_settings (setting_key, setting_value, setting_description) VA
 ('snmp_read_community', 'public-utki', 'Snmp community string untuk network monitoring script');
 
 INSERT INTO activity_logs (user_id, action_type, target_table, record_id, action_description, ip_address) VALUES
-('a1111111-1111-1111-1111-111111111111', 'Login', 'users', 'a1111111-1111-1111-1111-111111111111', 'User Admin login berhasil', '192.168.10.21'),
+('84fc95fe-bf79-4bdb-a51a-5933297c80db', 'Login', 'users', '84fc95fe-bf79-4bdb-a51a-5933297c80db', 'User Admin login berhasil', '192.168.10.21'),
 ('a3333333-3333-3333-3333-333333333333', 'Edit', 'computers', (SELECT id FROM computers WHERE computer_name = 'PC-12'), 'Mengubah kondisi PC-12 menjadi Maintenance', '192.168.10.15');
 
 -- Seed SNMP Mock Metrics (NOC simulation)
