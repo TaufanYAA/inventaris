@@ -70,7 +70,7 @@ BEGIN
     SELECT id INTO admin_role_id FROM roles WHERE role_name = 'Admin';
     
     FOR auth_user IN SELECT id, email FROM auth.users LOOP
-        -- Insert or update user in public.users
+        -- Insert user in public.users if not already exists
         INSERT INTO public.users (id, username, email, password_hash, full_name)
         VALUES (
             auth_user.id, 
@@ -79,12 +79,14 @@ BEGIN
             '$2b$12$eImiTXGVGb1t.IbX/7lJLe.49vX.25eX.25eX.25eX.25eX.25eX.', 
             'Administrator (' || split_part(auth_user.email, '@', 1) || ')'
         )
-        ON CONFLICT (email) DO UPDATE 
-        SET id = EXCLUDED.id, full_name = EXCLUDED.full_name;
+        ON CONFLICT (email) DO NOTHING;
 
         -- Assign Admin role
         INSERT INTO public.user_roles (user_id, role_id)
-        VALUES (auth_user.id, admin_role_id)
+        VALUES (
+            (SELECT id FROM public.users WHERE email = auth_user.email), 
+            admin_role_id
+        )
         ON CONFLICT (user_id, role_id) DO NOTHING;
     END LOOP;
 END $$;
