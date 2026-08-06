@@ -7,6 +7,24 @@ export class ComputersRepository extends BaseRepository<'computers'> {
     super('computers');
   }
 
+  // Override getById to join laboratory and room details
+  async getById(id: string) {
+    const { data, error } = await supabase
+      .from('computers')
+      .select(`
+        *,
+        laboratory:laboratories(
+          lab_name,
+          room:rooms(room_name)
+        )
+      `)
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    return data as any;
+  }
+
   // Override findMany to exclude soft deleted records by default
   async findActive(options: { select?: string; filters?: Record<string, any> } = {}) {
     const filters = { ...options.filters, deleted_at: null };

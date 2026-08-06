@@ -199,6 +199,28 @@ export const ComputerDetail: React.FC = () => {
     );
   }
 
+  // Dynamic network mapper based on lab name & PC index
+  const getNetworkDetails = () => {
+    if (!computer) return { ip: '—', gateway: '—', vlan: '—' };
+    const labName = (computer as any).laboratory?.lab_name || '';
+    let subnet = '10';
+    let vlan = '10';
+    if (labName.includes('Lab B') || labName.includes('LAB B')) { subnet = '20'; vlan = '20'; }
+    else if (labName.includes('Lab C') || labName.includes('LAB C')) { subnet = '30'; vlan = '30'; }
+    else if (labName.includes('Lab D') || labName.includes('LAB D')) { subnet = '40'; vlan = '40'; }
+    else if (labName.includes('Lab E') || labName.includes('LAB E')) { subnet = '50'; vlan = '50'; }
+    else if (labName.includes('Lab F') || labName.includes('LAB F')) { subnet = '60'; vlan = '60'; }
+    
+    const pcNum = computer.computer_name.split('-')[1] || '0';
+    return {
+      ip: `192.168.${subnet}.${10 + Number(pcNum)}`,
+      gateway: `192.168.${subnet}.1`,
+      vlan: `VLAN ${vlan}`
+    };
+  };
+
+  const net = getNetworkDetails();
+
   // Pre-seed mock warranty for visualization
   const mockWarranty = {
     number: `WAR-LG-MON-${computer.computer_name}`,
@@ -245,14 +267,14 @@ export const ComputerDetail: React.FC = () => {
               <Badge>{computer.condition}</Badge>
               <Badge>{computer.status}</Badge>
               <Badge variant="indigo">
-                {computer.laboratory_id.startsWith('c1') ? 'Lab Pemrograman (A)' : 'Lab Jaringan (B)'}
+                {(computer as any).laboratory?.lab_name || 'Tidak Ada Lab'}
               </Badge>
             </div>
             <p className="text-xs text-slate-400">
               Sistem Operasi: <span className="font-semibold text-slate-700 dark:text-slate-200">{computer.operating_system}</span>
             </p>
             <p className="text-xs text-slate-400">
-              Lokasi: Gedung C Lantai 3 Ruang 30{computer.laboratory_id.startsWith('c1') ? '1' : '2'}
+              Lokasi: {(computer as any).laboratory?.room?.room_name || '—'}
             </p>
           </div>
         </div>
@@ -337,7 +359,7 @@ export const ComputerDetail: React.FC = () => {
             <div className="flex justify-between items-center py-1">
               <span className="font-bold text-slate-500">IP Address</span>
               <span className="font-semibold text-sky-500 font-mono text-sm bg-sky-50 dark:bg-sky-950/30 px-2.5 py-1 rounded-lg">
-                {computer.laboratory_id.startsWith('c1') ? `192.168.10.${10 + Number(computer.computer_name.split('-')[1])}` : `192.168.20.${10 + Number(computer.computer_name.split('-')[1]) - 25}`}
+                {net.ip}
               </span>
             </div>
             <div className="flex justify-between items-center py-1 border-t border-slate-50 dark:border-slate-850">
@@ -347,7 +369,7 @@ export const ComputerDetail: React.FC = () => {
             <div className="flex justify-between items-center py-1 border-t border-slate-50 dark:border-slate-850">
               <span className="font-bold text-slate-500">Gateway Address</span>
               <span className="font-semibold text-slate-700 dark:text-slate-300 font-mono">
-                {computer.laboratory_id.startsWith('c1') ? '192.168.10.1' : '192.168.20.1'}
+                {net.gateway}
               </span>
             </div>
             <div className="flex justify-between items-center py-1 border-t border-slate-50 dark:border-slate-850">
