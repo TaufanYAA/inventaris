@@ -90,6 +90,45 @@ CREATE TYPE allocation_status_enum AS ENUM ('Available', 'Reserved', 'Allocated'
 CREATE TYPE asset_lifecycle_enum AS ENUM ('Planning', 'Procurement', 'Installed', 'Active', 'Maintenance', 'Retired', 'Disposed');
 
 -- =========================================================================
+-- Helper Functions & Triggers PL/pgSQL
+-- =========================================================================
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE OR REPLACE FUNCTION process_consumable_transaction()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.transaction_type = 'Stock In' THEN
+        UPDATE consumable_items
+        SET stock_quantity = stock_quantity + NEW.quantity
+        WHERE id = NEW.consumable_item_id;
+    ELSIF NEW.transaction_type = 'Stock Out' THEN
+        UPDATE consumable_items
+        SET stock_quantity = stock_quantity - NEW.quantity
+        WHERE id = NEW.consumable_item_id;
+    END IF;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE OR REPLACE FUNCTION check_user_role(target_role VARCHAR)
+RETURNS BOOLEAN AS $$
+BEGIN
+    RETURN EXISTS (
+        SELECT 1
+        FROM user_roles ur
+        JOIN roles r ON ur.role_id = r.id
+        WHERE ur.user_id = auth.uid() AND r.role_name = target_role
+    );
+END;
+$$ language 'plpgsql' security definer;
+
+-- =========================================================================
 -- 3. CORE TABLES (USER MANAGEMENT & RBAC)
 -- =========================================================================
 CREATE TABLE users (
