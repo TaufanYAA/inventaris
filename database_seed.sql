@@ -1,6 +1,42 @@
 -- DATABASE SEED DATA: LAB INVENTORY, CMMS & IT ASSET MANAGEMENT (ITAM) SYSTEM
 -- SEEDS DATA FOR ROLES, USERS, LOCATIONS, 45 HYBRID COMPUTERS, RACKS, SWITCHES, PORTS, IPAM, TICKETS, AND CONSUMABLES
 
+-- TRUNCATE ALL SEED TABLES TO ENSURE NO DUPLICATE CONSTRAINTS
+TRUNCATE TABLE 
+    activity_logs,
+    consumable_transactions,
+    consumable_items,
+    warranties,
+    procurement,
+    suppliers,
+    software_installations,
+    software,
+    maintenance_details,
+    maintenance,
+    incidents,
+    tickets,
+    qr_codes,
+    ip_addresses,
+    switch_ports,
+    rack_slots,
+    patch_panels,
+    racks,
+    network_links,
+    network_nodes,
+    network_configs,
+    network_devices,
+    internet_providers,
+    dhcp_scopes,
+    subnets,
+    vlans,
+    computers,
+    laboratories,
+    rooms,
+    user_roles,
+    roles,
+    users
+    RESTART IDENTITY CASCADE;
+
 -- 1. SEED ROLES
 INSERT INTO roles (role_name, role_description) VALUES
 ('Admin', 'Administrator Utama dengan hak akses penuh sistem'),
