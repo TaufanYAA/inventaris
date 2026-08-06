@@ -78,7 +78,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data: profile, error: profileError } = await supabase
         .from('users')
         .select('id, full_name')
-        .eq('email', email)
+        .ilike('email', email)
         .single();
 
       let targetUserId = userId;
