@@ -16,13 +16,13 @@ import { Button } from '../../shared/components/ui/Button';
 import { Modal } from '../../shared/components/ui/Modal';
 import { Select } from '../../shared/components/ui/Select';
 import { useToast } from '../../shared/components/Toast';
+import { useAuth } from '../auth/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { Search, Plus, Archive, History, BookOpen, AlertTriangle, ArrowDownRight, ArrowUpRight } from 'lucide-react';
 
-const ADMIN_USER_ID = 'u0000001-0000-0000-0000-000000000001';
-
 export const ConsumablesList: React.FC = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'inventory' | 'transactions' | 'loans'>('inventory');
   const [search, setSearch] = useState('');
 
@@ -78,7 +78,7 @@ export const ConsumablesList: React.FC = () => {
   useEffect(() => {
     async function loadSelectOptions() {
       const { data: userData } = await supabase.from('users').select('id, full_name').order('full_name');
-      const { data: invData } = await supabase.from('inventory_items').select('id, item_name, brand, available_quantity').eq('deleted_at', null).order('item_name');
+      const { data: invData } = await supabase.from('inventory_items').select('id, item_name, brand, available_quantity').is('deleted_at', null).order('item_name');
       if (userData) {
         setUsers(userData);
         if (userData.length > 0) setLoanForm((p) => ({ ...p, borrower_id: userData[0].id }));
@@ -110,7 +110,7 @@ export const ConsumablesList: React.FC = () => {
     const payload = {
       ...mutationForm,
       consumable_item_id: mutationModal.item.id,
-      created_by: ADMIN_USER_ID,
+      created_by: user?.id || '',
     };
 
     recordTx(payload, {
@@ -135,7 +135,7 @@ export const ConsumablesList: React.FC = () => {
       borrow_date: loanForm.borrow_date,
       due_date: loanForm.due_date,
       purpose_description: loanForm.purpose_description,
-      created_by: ADMIN_USER_ID,
+      created_by: user?.id || '',
     };
 
     const items = [{

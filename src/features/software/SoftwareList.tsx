@@ -68,7 +68,7 @@ export const SoftwareList: React.FC = () => {
       const { data } = await supabase
         .from('computers')
         .select('id, computer_name')
-        .eq('deleted_at', null)
+        .is('deleted_at', null)
         .order('computer_name');
       if (data) {
         setComputers(data);
