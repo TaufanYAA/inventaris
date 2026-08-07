@@ -63,6 +63,8 @@ export const DashboardHome: React.FC = () => {
   const [computers, setComputers] = useState<any[]>([]);
   const [labs, setLabs] = useState<any[]>([]);
   const [selectedLabId, setSelectedLabId] = useState('');
+  const [ispName, setIspName] = useState('Memuat...');
+  const [publicIp, setPublicIp] = useState('...');
 
   // Fetch labs and computers from database
   useEffect(() => {
@@ -88,6 +90,19 @@ export const DashboardHome: React.FC = () => {
 
       if (compData) {
         setComputers(compData);
+      }
+
+      // Load ISP info from system_settings
+      const { data: settingsData } = await supabase
+        .from('system_settings')
+        .select('setting_key, setting_value')
+        .in('setting_key', ['isp_name', 'public_ip']);
+
+      if (settingsData) {
+        settingsData.forEach(s => {
+          if (s.setting_key === 'isp_name') setIspName(s.setting_value);
+          if (s.setting_key === 'public_ip') setPublicIp(s.setting_value);
+        });
       }
     }
     loadData();
@@ -221,8 +236,8 @@ export const DashboardHome: React.FC = () => {
             </span>
           </div>
           <div className="text-xs space-y-1 text-slate-500 dark:text-slate-400">
-            <p>ISP: Biznet Dedicated Enterprise</p>
-            <p>Public IP: 103.120.40.15</p>
+            <p>ISP: {ispName}</p>
+            <p>Public IP: {publicIp}</p>
           </div>
         </Card>
 

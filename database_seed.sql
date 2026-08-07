@@ -339,7 +339,9 @@ INSERT INTO consumable_transactions (consumable_item_id, transaction_type, quant
 INSERT INTO system_settings (setting_key, setting_value, setting_description) VALUES
 ('campus_name', 'Universitas Teknologi Komputer Indonesia (UTKI)', 'Nama Institusi Kampus Utama'),
 ('alert_email_notification', 'admin@labnet.ac.id', 'Email penerima laporan kendala otomatis server'),
-('snmp_read_community', 'public-utki', 'Snmp community string untuk network monitoring script');
+('snmp_read_community', 'public-utki', 'Snmp community string untuk network monitoring script'),
+('isp_name', 'Biznet Dedicated Enterprise', 'Nama penyedia layanan internet (ISP) kampus'),
+('public_ip', '103.120.40.15', 'Alamat IP publik koneksi internet kampus');
 
 INSERT INTO activity_logs (user_id, action_type, target_table, record_id, action_description, ip_address) VALUES
 ('84fc95fe-bf79-4bdb-a51a-5933297c80db', 'Login', 'users', '84fc95fe-bf79-4bdb-a51a-5933297c80db', 'User Admin login berhasil', '192.168.10.21'),

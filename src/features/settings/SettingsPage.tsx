@@ -8,7 +8,7 @@ import { useAuth } from '../auth/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { createClient } from '@supabase/supabase-js';
 import { env } from '../../lib/env';
-import { Save, ShieldAlert, School, Mail, Eye, EyeOff, KeyRound, User, Phone, Users, Plus, Trash2, Loader2 } from 'lucide-react';
+import { Save, ShieldAlert, School, Mail, Eye, EyeOff, KeyRound, User, Phone, Users, Plus, Trash2, Loader2, Globe, Wifi } from 'lucide-react';
 
 type UserRow = {
   id: string;
@@ -32,6 +32,8 @@ export default function SettingsPage() {
   const [campusName, setCampusName] = useState('');
   const [alertEmail, setAlertEmail] = useState('');
   const [snmpCommunity, setSnmpCommunity] = useState('');
+  const [ispName, setIspName] = useState('');
+  const [publicIp, setPublicIp] = useState('');
   const [showSnmp, setShowSnmp] = useState(false);
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
@@ -141,6 +143,8 @@ export default function SettingsPage() {
             if (item.setting_key === 'campus_name') setCampusName(item.setting_value);
             if (item.setting_key === 'alert_email_notification') setAlertEmail(item.setting_value);
             if (item.setting_key === 'snmp_read_community') setSnmpCommunity(item.setting_value);
+            if (item.setting_key === 'isp_name') setIspName(item.setting_value);
+            if (item.setting_key === 'public_ip') setPublicIp(item.setting_value);
           });
         }
       } catch (err: any) {
@@ -187,6 +191,8 @@ export default function SettingsPage() {
         { setting_key: 'campus_name', setting_value: campusName, setting_description: 'Nama Institusi Kampus Utama' },
         { setting_key: 'alert_email_notification', setting_value: alertEmail, setting_description: 'Email penerima laporan kendala otomatis server' },
         { setting_key: 'snmp_read_community', setting_value: snmpCommunity, setting_description: 'Snmp community string untuk network monitoring script' },
+        { setting_key: 'isp_name', setting_value: ispName, setting_description: 'Nama penyedia layanan internet (ISP) kampus' },
+        { setting_key: 'public_ip', setting_value: publicIp, setting_description: 'Alamat IP publik koneksi internet kampus' },
       ];
       
       const { error } = await supabase
@@ -413,6 +419,30 @@ export default function SettingsPage() {
                 required
               />
             </Card>
+
+            <Card className="p-6 space-y-6">
+              <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+                <Globe className="w-5 h-5 text-emerald-500" />
+                <h2 className="font-semibold text-slate-800 dark:text-white">Koneksi Internet (ISP)</h2>
+              </div>
+
+              <Input
+                label="Nama ISP / Provider Internet"
+                placeholder="e.g. Biznet Dedicated Enterprise"
+                value={ispName}
+                onChange={e => setIspName(e.target.value)}
+                icon={<Wifi className="w-4 h-4 text-slate-400" />}
+              />
+
+              <Input
+                label="Alamat IP Publik"
+                placeholder="e.g. 103.120.40.15"
+                value={publicIp}
+                onChange={e => setPublicIp(e.target.value)}
+                icon={<Globe className="w-4 h-4 text-slate-400" />}
+              />
+            </Card>
+
 
             <Card className="p-6 space-y-6">
               <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
