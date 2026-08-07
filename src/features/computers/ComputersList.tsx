@@ -34,14 +34,20 @@ export const ComputersList: React.FC = () => {
         .select('id, lab_name')
         .is('deleted_at', null)
         .order('lab_name');
-      if (data) setLabs(data);
+      if (data) {
+        setLabs(data);
+        // Default: tampilkan lab pertama saja
+        if (data.length > 0) {
+          setLabFilter(data[0].id);
+        }
+      }
     }
     loadLabs();
   }, []);
   
   // DataTable pagination & sorting state
   const [page, setPage] = useState(1);
-  const [pageSize] = useState(10);
+  const [pageSize] = useState(15);
   const [sortColumn, setSortColumn] = useState('computer_name');
   const [sortAscending, setSortAscending] = useState(true);
 
@@ -218,7 +224,7 @@ export const ComputersList: React.FC = () => {
             Inventaris Komputer (Workstations)
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            Daftar terperinci 45 unit spesifikasi hybrid PC dan status laboratorium.
+            Pilih laboratorium untuk melihat 45 unit workstation per ruangan.
           </p>
         </div>
         <div className="flex items-center gap-2.5">
@@ -234,8 +240,37 @@ export const ComputersList: React.FC = () => {
         </div>
       </div>
 
+      {/* LAB TABS SELECTOR */}
+      <div className="flex flex-wrap gap-2">
+        {labs.map(lab => (
+          <button
+            key={lab.id}
+            type="button"
+            onClick={() => { setLabFilter(lab.id); setPage(1); }}
+            className={`px-4 py-2 text-xs font-bold rounded-xl transition-all duration-200 border ${
+              labFilter === lab.id
+                ? 'bg-sky-500 border-sky-500 text-white shadow-md shadow-sky-500/20'
+                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+            }`}
+          >
+            {lab.lab_name}
+          </button>
+        ))}
+        <button
+          type="button"
+          onClick={() => { setLabFilter(''); setPage(1); }}
+          className={`px-4 py-2 text-xs font-bold rounded-xl transition-all duration-200 border ${
+            labFilter === ''
+              ? 'bg-slate-700 border-slate-700 text-white'
+              : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-500 hover:bg-slate-50'
+          }`}
+        >
+          Semua Lab
+        </button>
+      </div>
+
       {/* FILTER PANEL */}
-      <Card className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 items-end">
+      <Card className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 items-end">
         <Input
           label="Pencarian Global"
           placeholder="Cari PC, processor, RAM, SSD..."
@@ -245,18 +280,6 @@ export const ComputersList: React.FC = () => {
             setPage(1);
           }}
           icon={<Search className="w-4 h-4" />}
-        />
-        <Select
-          label="Filter Laboratorium"
-          options={[
-            { value: '', label: 'Semua Laboratorium' },
-            ...labs.map(l => ({ value: l.id, label: l.lab_name }))
-          ]}
-          value={labFilter}
-          onChange={e => {
-            setLabFilter(e.target.value);
-            setPage(1);
-          }}
         />
         <Select
           label="Filter Kondisi"
