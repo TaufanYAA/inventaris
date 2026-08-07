@@ -191,7 +191,7 @@ export default function SettingsPage() {
       
       const { error } = await supabase
         .from('system_settings')
-        .upsert(updates);
+        .upsert(updates, { onConflict: 'setting_key' });
 
       if (error) throw error;
       toast('success', 'Pengaturan sistem berhasil disimpan.');
